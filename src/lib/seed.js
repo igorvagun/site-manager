@@ -405,6 +405,25 @@ export function buildSeed(lang = 'he') {
     { name: L('מחפר זחלי', 'Tracked excavator'), kind: 'rented', status: 'returned', supplier: L('עפר הצפון', 'North Earthworks'), daily_rate: 1900, start_date: d(-128), return_date: d(-112), returned_on: d(-113), inspection_date: null, notes: '' },
   ]);
 
+  const pays = (rows) => rows.map(([off, amount, note]) => ({ id: uid(), date: d(off), amount, note, expense_id: null }));
+  const subcontracts = mk([
+    { name: L('שלד בע״מ', 'Sheled Ltd'), trade: L('שלד וטפסנות', 'Frame & formwork'), contact_id: null, scope: L('עבודות שלד: עמודים, קירות ותקרות, מרתף עד גג', 'Structural frame: columns, walls and slabs, basement to roof'), amount: 1850000, retention: 5, start_date: d(-110), end_date: d(70), status: 'active', progress: 55, retention_released: false, notes: '', payments: pays([[-80, 320000, L('חשבון חלקי 1', 'Progress bill 1')], [-45, 310000, L('חשבון חלקי 2', 'Progress bill 2')], [-14, 240000, L('חשבון חלקי 3', 'Progress bill 3')]]) },
+    { name: L('א.נ. מערכות', 'A.N. Systems'), trade: L('חשמל ואינסטלציה', 'Electrical & plumbing'), contact_id: null, scope: L('תשתיות חשמל ואינסטלציה בכל הקומות', 'Electrical and plumbing rough-in on every floor'), amount: 640000, retention: 5, start_date: d(-60), end_date: d(120), status: 'active', progress: 20, retention_released: false, notes: '', payments: pays([[-30, 96000, L('מקדמה', 'Advance')]]) },
+    { name: L('עפר הצפון', 'North Earthworks'), trade: L('עבודות עפר', 'Earthworks'), contact_id: null, scope: L('חפירה, דיפון ופינוי עפר', 'Excavation, shoring and haul-off'), amount: 236000, retention: 0, start_date: d(-128), end_date: d(-108), status: 'done', progress: 100, retention_released: true, notes: '', payments: pays([[-120, 118000, ''], [-100, 118000, L('חשבון סופי', 'Final bill')]]) },
+    { name: L('אלומיניום הגליל', 'Galil Aluminium'), trade: L('חלונות ודלתות', 'Windows & doors'), contact_id: null, scope: L('ייצור והתקנת חלונות אלומיניום', 'Supply and install aluminium windows'), amount: 410000, retention: 10, start_date: d(-20), end_date: d(-3), status: 'paused', progress: 10, retention_released: false, notes: L('ממתין למידות סופיות מהאדריכל', 'Waiting for final sizes from the architect'), payments: [] },
+  ]);
+  subcontracts[0].contact_id = contacts[2].id;
+  subcontracts[1].contact_id = contacts[3].id;
+
+  const documents = mk([
+    { name: L('היתר בנייה', 'Building permit'), kind: 'permit', number: '2024-1187', issuer: L('הוועדה המקומית לתכנון ובנייה', 'Local planning committee'), holder: '', issued_on: d(-200), expires_on: d(530), notes: '' },
+    { name: L('ביטוח עבודות קבלניות', 'Contractor all-risks insurance'), kind: 'insurance', number: 'CAR-55231', issuer: L('מגן ביטוח', 'Magen Insurance'), holder: '', issued_on: d(-345), expires_on: d(20), notes: L('לחדש לפני יציקת קומה ד', 'Renew before the floor 4 pour') },
+    { name: L('תסקיר בדיקת עגורן צריח', 'Tower crane inspection report'), kind: 'certificate', number: 'TC-0931', issuer: L('בודק מוסמך — י. רון', 'Certified inspector — Y. Ron'), holder: L('עגורן צריח', 'Tower crane'), issued_on: d(-190), expires_on: d(-8), notes: '' },
+    { name: L('רישיון מפעיל עגורן', 'Crane operator licence'), kind: 'license', number: '038812', issuer: L('משרד העבודה', 'Ministry of Labour'), holder: L('דוד מזרחי', 'David Mizrahi'), issued_on: d(-600), expires_on: d(130), notes: '' },
+    { name: L('אישור עבודה בגובה', 'Work-at-height certificate'), kind: 'certificate', number: '', issuer: L('מכללת בטיחות', 'Safety College'), holder: L('משה לוי', 'Moshe Levi'), issued_on: d(-720), expires_on: d(9), notes: '' },
+    { name: L('מינוי מנהל עבודה', 'Site foreman appointment'), kind: 'other', number: '', issuer: L('משרד העבודה', 'Ministry of Labour'), holder: L('יוסי כהן', 'Yossi Cohen'), issued_on: d(-128), expires_on: null, notes: '' },
+  ]);
+
   const todos = mk([
     { title: L('לאשר הזמנת בטון ליום חמישי', 'Confirm Thursday concrete order'), list: L('אתר', 'Site'), priority: 'high', due_date: d(0), done: false, pinned: true, notes: '', subtasks: [{ t: L('כמות: 40 מ״ק', 'Quantity: 40 m³'), done: true }, { t: L('משאבה 10:00', 'Pump at 10:00'), done: false }] },
     { title: L('לתאם ביקורת מהנדס — עמודים קומה ג', 'Book engineer inspection — floor 3 columns'), list: L('אתר', 'Site'), priority: 'high', due_date: d(0), done: false, pinned: false, notes: '', subtasks: [] },
@@ -434,5 +453,7 @@ export function buildSeed(lang = 'he') {
     todos: scope(P1, todos),
     contacts: scope(P1, contacts),
     equipment: scope(P1, equipment),
+    subcontracts: scope(P1, subcontracts),
+    documents: scope(P1, documents),
   };
 }

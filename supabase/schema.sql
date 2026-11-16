@@ -350,6 +350,51 @@ CREATE TABLE IF NOT EXISTS statements (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Subcontracts. payments: [{ id, date, amount, note, expense_id }]
+CREATE TABLE IF NOT EXISTS subcontracts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  trade TEXT DEFAULT '',
+  contact_id UUID,
+  scope TEXT DEFAULT '',
+  amount NUMERIC NOT NULL DEFAULT 0,
+  retention NUMERIC DEFAULT 0,
+  retention_released BOOLEAN DEFAULT FALSE,
+  start_date DATE,
+  end_date DATE,
+  status TEXT NOT NULL DEFAULT 'active', -- active | paused | done
+  progress NUMERIC DEFAULT 0,
+  payments JSONB NOT NULL DEFAULT '[]'::JSONB,
+  notes TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Project documents: permits, insurance, certificates, licences.
+CREATE TABLE IF NOT EXISTS documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'other',
+  number TEXT DEFAULT '',
+  issuer TEXT DEFAULT '',
+  holder TEXT DEFAULT '',
+  issued_on DATE,
+  expires_on DATE,
+  file_id TEXT, file_name TEXT, file_type TEXT,
+  added_by TEXT DEFAULT '',
+  notes TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- The account's own quality checklists (shared by all projects). items: [text]
+CREATE TABLE IF NOT EXISTS checklists (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  items JSONB NOT NULL DEFAULT '[]'::JSONB,
+  created_by UUID,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE inspections ADD COLUMN IF NOT EXISTS title TEXT DEFAULT '';
+
 -- File storage for drawings, voice and video notes, chat attachments and receipt photos.
 INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', FALSE) ON CONFLICT (id) DO NOTHING;
 DROP POLICY IF EXISTS "site-manager files" ON storage.objects;
@@ -361,7 +406,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements']
+                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements','subcontracts','documents']
   LOOP
     EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE CASCADE', t);
     EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (project_id)', t || '_project_idx', t);
@@ -372,9 +417,9 @@ END $$;
 DO $$
 DECLARE t TEXT;
 BEGIN
-  FOREACH t IN ARRAY ARRAY['projects','users','positions','templates','tasks','workers','attendance','logs','expenses',
+  FOREACH t IN ARRAY ARRAY['projects','users','positions','templates','checklists','tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements']
+                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements','subcontracts','documents']
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('DROP POLICY IF EXISTS "Allow all operations for anon" ON %I', t);

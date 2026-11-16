@@ -4618,3 +4618,150 @@ input[type='range']:disabled {
 .row-btn .link {
   font-weight: 700;
 }
+
+/* ───────── Subcontractors & documents ───────── */
+.c-plum { --i1: #e3b3e8; --i2: #9b4bb0; }
+.c-sky { --i1: #b5dcff; --i2: #3d86e0; }
+.sub-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.sub-progress b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.sub-scope,
+.doc-notes {
+  color: var(--text2);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.sub-scope {
+  margin-top: 10px;
+}
+.sub-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+  font-weight: 600;
+}
+.sub-sums {
+  margin-top: 14px;
+  border-radius: 16px;
+  background: var(--fill);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+}
+.sub-sums div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border-top: 1px solid var(--hairline);
+}
+.sub-sums div:first-child {
+  border-top: 0;
+}
+.sub-sums dt {
+  color: var(--text2);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.sub-sums dd {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sub-sums .total {
+  background: color-mix(in srgb, var(--blue-f) 12%, transparent);
+}
+.sub-sums .total dt {
+  color: var(--text);
+  font-weight: 700;
+}
+.sub-sums .total dd {
+  font-size: 17px;
+  font-weight: 750;
+}
+.sub-h {
+  margin: 18px 0 8px;
+  font-size: 15px;
+}
+.sub-pays {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sub-pays li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--fill);
+  border: 1px solid var(--hairline);
+  font-size: 13.5px;
+}
+.sub-pays li > span:first-child {
+  color: var(--text2);
+  font-variant-numeric: tabular-nums;
+}
+.sub-pays .grow {
+  flex: 1;
+  min-width: 80px;
+}
+.sub-payform {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--hairline);
+  background: var(--glass-solid);
+}
+.sub-payform > .field:not(.half),
+.sub-payform > .setting,
+.sub-warn {
+  grid-column: 1 / -1;
+}
+.doc.expired {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--red-f) 70%, transparent), var(--shadow, none);
+}
+.doc.expiring {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--orange-f) 70%, transparent), var(--shadow, none);
+}
+.qc-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.qc-add input {
+  flex: 1;
+  min-width: 0;
+}
+.qc-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+@media (max-width: 560px) {
+  .sub-payform {
+    grid-template-columns: 1fr;
+  }
+}
+.job.doc header small,
+.job.sub header small {
+  display: block;
+  color: var(--text2);
+  margin-top: 2px;
+}
