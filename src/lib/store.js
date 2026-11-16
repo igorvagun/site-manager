@@ -22,6 +22,8 @@ export const SCOPED = [
   'todos',
   'contacts',
   'equipment',
+  'absences',
+  'activity',
 ];
 export const COLLECTIONS = [...GLOBAL, ...SCOPED];
 
@@ -110,7 +112,8 @@ async function restore(snapshot) {
   const next = {};
   COLLECTIONS.forEach((name) => {
     const old = new Set(snapshot[name].map((r) => r.id));
-    next[name] = [...snapshot[name], ...(now[name] || []).filter((r) => !old.has(r.id))];
+    // In the history, entries for the deletes and edits being reverted go too; records added meanwhile stay.
+    next[name] = [...snapshot[name], ...(now[name] || []).filter((r) => !old.has(r.id) && (name !== 'activity' || r.action === 'add'))];
   });
   set({ data: next });
   persist();
@@ -181,6 +184,57 @@ export async function initStore(lang) {
 
 const remote = () => state.mode === 'cloud' && supabase;
 
+// ───── History ─────
+// Who changed what. Kept for the records people ask about later; chats, clock-ins and the like are not logged.
+const TRACKED = ['tasks', 'issues', 'expenses', 'budget_lines', 'change_orders', 'workers', 'equipment', 'materials', 'safety', 'drawings', 'contacts', 'logs'];
+const SKIP_FIELDS = ['id', 'created_at', 'project_id', 'media', 'photos', 'photo', 'position', 'reactions', 'checklist', 'subtasks', 'steps', 'url', 'file_id', 'started_by', 'finished_by', 'created_by', 'in_by', 'out_by', 'returned_on', 'user_id', 'drawing_id', 'depends_on', 'pin_x', 'pin_y'];
+const MAX_ACTIVITY = 600;
+const titleOf = (row) => row.name || row.title || row.description || row.summary || row.number || '';
+const same = (a, b) => JSON.stringify(a ?? '') === JSON.stringify(b ?? '');
+
+function logActivity(action, name, row, prev, patch) {
+  if (!TRACKED.includes(name) || bulk || !state.userId) return;
+  const user = state.data.users.find((u) => u.id === state.userId);
+  let changes = [];
+  if (action === 'update') {
+    changes = Object.keys(patch)
+      .filter((k) => !SKIP_FIELDS.includes(k) && !same(prev[k], patch[k]))
+      .map((k) => ({ field: k, from: prev[k] ?? '', to: patch[k] ?? '' }));
+    if (!changes.length) return;
+  }
+  const list = state.data.activity || [];
+  const last = list[list.length - 1];
+  const now = Date.now();
+  // Dragging a slider or tapping +/– several times is one change, not ten.
+  if (action === 'update' && last && last.action === 'update' && last.row_id === row.id && last.user_id === state.userId && now - new Date(last.at) < 60000) {
+    const merged = [...last.changes];
+    changes.forEach((c) => {
+      const i = merged.findIndex((m) => m.field === c.field);
+      if (i >= 0) merged[i] = { ...merged[i], to: c.to };
+      else merged.push(c);
+    });
+    const entry = { ...last, at: new Date().toISOString(), changes: merged.filter((m) => !same(m.from, m.to)) };
+    setRows('activity', (rows) => (entry.changes.length ? rows.map((r) => (r.id === last.id ? entry : r)) : rows.filter((r) => r.id !== last.id)));
+    if (remote()) (entry.changes.length ? supabase.from('activity').update({ at: entry.at, changes: entry.changes }).eq('id', last.id) : supabase.from('activity').delete().eq('id', last.id)).then(() => {});
+    return;
+  }
+  const entry = {
+    id: uid(),
+    created_at: new Date().toISOString(),
+    at: new Date().toISOString(),
+    project_id: row.project_id || state.projectId,
+    user_id: state.userId,
+    user_name: user?.name || '',
+    action,
+    collection: name,
+    row_id: row.id,
+    title: String(titleOf(row)).slice(0, 120),
+    changes,
+  };
+  setRows('activity', (rows) => [...rows, entry].slice(-MAX_ACTIVITY));
+  if (remote()) supabase.from('activity').insert(entry).then(() => {});
+}
+
 export async function addRow(name, row) {
   const full = { id: uid(), created_at: new Date().toISOString(), ...row };
   if (SCOPED.includes(name) && !full.project_id) full.project_id = state.projectId;
@@ -194,6 +248,7 @@ export async function addRow(name, row) {
       return null;
     }
   }
+  logActivity('add', name, full);
   return full;
 }
 
@@ -201,6 +256,7 @@ export async function updateRow(name, id, patch) {
   const prev = (state.data[name] || []).find((r) => r.id === id);
   if (!prev) return;
   setRows(name, (rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  logActivity('update', name, prev, prev, patch);
   if (remote()) {
     const { error } = await supabase.from(name).update(patch).eq('id', id);
     if (error) {
@@ -215,6 +271,7 @@ export async function removeRow(name, id, { silent = false } = {}) {
   const prev = (state.data[name] || []).find((r) => r.id === id);
   if (!prev) return;
   setRows(name, (rows) => rows.filter((r) => r.id !== id));
+  logActivity('delete', name, prev);
   if (!bulk && !silent) offerUndo();
   if (remote()) {
     const { error } = await supabase.from(name).delete().eq('id', id);

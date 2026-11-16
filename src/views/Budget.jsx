@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { routeQuery } from '../lib/nav';
 import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, CATEGORIES, CO_STATUS } from '../lib/constants';
 import { Glass, Card, Icon, Badge, Meter, EntityForm, Empty, PageHead, SearchBox, Stat, IconButton } from '../components/ui';
@@ -12,7 +13,7 @@ export default function Budget() {
   const o = useOptions();
   const m = useMetrics();
   const { cur } = m;
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(routeQuery);
   const [cat, setCat] = useState('');
   const [form, setForm] = useState(null); // { kind, row }
 

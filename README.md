@@ -7,7 +7,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 
 1. **Sign in.** The app recognises the person's role — project manager, foreman or worker — and shows only what that role may use.
 2. **Home desktop.** App icons, like a phone home screen: one icon per project, plus New project, All projects (side-by-side comparison), Accounts, Positions and Settings.
-3. **Project desktop.** Each project has its own wallpaper and accent colour, its own data, and its own set of sub-apps, grouped into Work, People, Money and resources, and Control. Icons carry a count of things needing attention, and each person can hide the apps they do not use.
+3. **Project desktop.** Each project has its own wallpaper and accent colour, its own data, and its own set of sub-apps, grouped into Work, People, Money and resources, and Control. Icons carry a count of things needing attention, and each person can reorder them and hide the ones they do not use.
 
 ### Project sub-apps
 
@@ -16,7 +16,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 | Dashboard | What changed since yesterday, progress vs plan, handover forecast at the current pace, budget, crew, alerts, spend chart, next 7 days |
 | Team | Workers with full details, daily attendance, chat with each worker |
 | Schedule | Task list and Gantt, priorities, dependencies with one-tap shifting, built-in and your own task templates |
-| Week plan | The next seven days by day, with the crew plan and double bookings flagged; printable |
+| Week plan | The next seven days by day, with the crew plan, planned time off, and double bookings flagged; printable |
 | Calendar | Every dated item of the project on a month grid |
 | Daily Log | Site diary pre-drafted from the day's tasks; photos; printable daily report |
 | Budget | Budget vs actual by category, expenses, change orders, forecast |
@@ -32,6 +32,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 | To-do | The manager's private checklist: lists, priorities, due dates, sub-steps, pinning |
 | Contacts | Contractors, engineers, architects, suppliers; call, WhatsApp or in-app chat |
 | AI analyst | Day / week / month statistics from tasks, chats and shifts; written conclusions when AI is connected |
+| History | Who changed what: tasks, issues, money, crew, equipment — with old and new values |
 | Project settings | Look (wallpaper, accent), details, delete project |
 
 ### Across the app

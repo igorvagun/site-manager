@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useI18n } from '../lib/i18n';
 import { useStore, useData, addRow } from '../lib/store';
-import { lastOpened, hiddenApps, setHiddenApps } from '../lib/prefs';
+import { lastOpened, hiddenApps, setHiddenApps, appOrder, setAppOrder } from '../lib/prefs';
 import { clockIn, clockOut } from '../lib/clock';
 import { startTask, finishTask } from './TaskJournal';
 import { equipmentAlerts } from './Equipment';
@@ -230,6 +230,18 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
   const [showArchive, setShowArchive] = useState(false);
   const [arranging, setArranging] = useState(false);
   const [hidden, setHidden] = useState(() => hiddenApps(user.id));
+  const [order, setOrder] = useState(() => appOrder(user.id));
+  const rank = (a) => (order.includes(a.id) ? order.indexOf(a.id) : 1000 + apps.indexOf(a));
+  const move = (list, a, dir) => {
+    const ids = list.map((x) => x.id);
+    const i = ids.indexOf(a.id);
+    if (i + dir < 0 || i + dir >= ids.length) return;
+    [ids[i], ids[i + dir]] = [ids[i + dir], ids[i]];
+    // Keep the order of the other groups, replace this group's run.
+    const next = [...order.filter((id) => !ids.includes(id)), ...ids];
+    setOrder(next);
+    setAppOrder(user.id, next);
+  };
   const toggleHidden = (id) => {
     const next = hidden.includes(id) ? hidden.filter((x) => x !== id) : [...hidden, id];
     setHidden(next);
@@ -354,23 +366,30 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
       )}
       {project &&
         APP_GROUPS.map((g) => {
-          const list = apps.filter((a) => a.group === g && (arranging || !hidden.includes(a.id)));
+          const list = apps.filter((a) => a.group === g && (arranging || !hidden.includes(a.id))).sort((a, b) => rank(a) - rank(b));
           if (!list.length) return null;
           return (
             <section className="app-group" key={g} aria-label={t('group_' + g)}>
               <h2>{t('group_' + g)}</h2>
               <nav className="app-grid">
-                {list.map((a) => (
-                  <AppIcon
-                    key={a.id}
-                    icon={a.icon}
-                    color={a.color}
-                    label={t('nav_' + a.id)}
-                    badge={arranging ? 0 : badges[a.id] || 0}
-                    hidden={hidden.includes(a.id)}
-                    pressed={arranging ? !hidden.includes(a.id) : undefined}
-                    onClick={() => (arranging ? toggleHidden(a.id) : nav(`p/${project.id}/${a.id}`))}
-                  />
+                {list.map((a, i) => (
+                  <div className="app-slot" key={a.id}>
+                    <AppIcon
+                      icon={a.icon}
+                      color={a.color}
+                      label={t('nav_' + a.id)}
+                      badge={arranging ? 0 : badges[a.id] || 0}
+                      hidden={hidden.includes(a.id)}
+                      pressed={arranging ? !hidden.includes(a.id) : undefined}
+                      onClick={() => (arranging ? toggleHidden(a.id) : nav(`p/${project.id}/${a.id}`))}
+                    />
+                    {arranging && (
+                      <div className="app-move">
+                        <IconButton icon="up" tone="rot-start" size={14} label={`${t('move_earlier')}: ${t('nav_' + a.id)}`} onClick={() => move(list, a, -1)} disabled={i === 0} />
+                        <IconButton icon="up" tone="rot-end" size={14} label={`${t('move_later')}: ${t('nav_' + a.id)}`} onClick={() => move(list, a, 1)} disabled={i === list.length - 1} />
+                      </div>
+                    )}
+                  </div>
                 ))}
               </nav>
             </section>

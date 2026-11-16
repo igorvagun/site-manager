@@ -27,3 +27,7 @@ export const markOpened = (uid, pid, app) => write(openedKey(uid, pid, app), new
 // Apps a person chose to hide from their project desktops (still reachable through search).
 export const hiddenApps = (uid) => read(`site-manager:hidden-apps:${uid}`, []);
 export const setHiddenApps = (uid, ids) => write(`site-manager:hidden-apps:${uid}`, ids);
+
+// The order a person arranged their project apps in (ids; anything not listed keeps its default place).
+export const appOrder = (uid) => read(`site-manager:app-order:${uid}`, []);
+export const setAppOrder = (uid, ids) => write(`site-manager:app-order:${uid}`, ids);

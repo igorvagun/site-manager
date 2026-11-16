@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { routeQuery } from '../lib/nav';
 import { useData, useUser, addRow, updateRow, removeRow, notify } from '../lib/store';
 import { useOptions, TASK_STATUS } from '../lib/constants';
 import { TEMPLATES } from '../lib/templates';
@@ -142,7 +143,7 @@ export default function Schedule() {
   const fields = useTaskFields();
   const cur = data.project[0]?.currency || '₪';
   const [mode, setMode] = useState('list');
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(routeQuery);
   const [status, setStatus] = useState('');
   const [floor, setFloor] = useState('');
   const [editing, setEditing] = useState(null);

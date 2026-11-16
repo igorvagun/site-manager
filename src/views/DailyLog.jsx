@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { routeQuery } from '../lib/nav';
 import { useData, useUser, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, WEATHER } from '../lib/constants';
 import { Glass, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox, Modal } from '../components/ui';
@@ -140,7 +141,7 @@ export default function DailyLog() {
   const data = useData();
   const o = useOptions();
   const [editing, setEditing] = useState(null);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(routeQuery);
   const [photo, setPhoto] = useState(null);
   const [report, setReport] = useState(null);
   const lead = useUser().role !== 'worker'; // the diary is written by managers and foremen; workers read it

@@ -278,6 +278,32 @@ CREATE TABLE IF NOT EXISTS templates (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Planned time off, shown in the week plan.
+CREATE TABLE IF NOT EXISTS absences (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  worker_id UUID NOT NULL REFERENCES workers(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL DEFAULT 'leave', -- leave | sick | other
+  "from" DATE NOT NULL,
+  "to" DATE NOT NULL,
+  note TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- History: who changed what. changes: [{ field, from, to }]
+CREATE TABLE IF NOT EXISTS activity (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  user_id UUID,
+  user_name TEXT DEFAULT '',
+  action TEXT NOT NULL,       -- add | update | delete
+  collection TEXT NOT NULL,
+  row_id UUID,
+  title TEXT DEFAULT '',
+  changes JSONB DEFAULT '[]'::JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS activity_at_idx ON activity (at);
+
 -- File storage for drawings, voice and video notes, chat attachments and receipt photos.
 INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', FALSE) ON CONFLICT (id) DO NOTHING;
 DROP POLICY IF EXISTS "site-manager files" ON storage.objects;
@@ -289,7 +315,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts','equipment']
+                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity']
   LOOP
     EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE CASCADE', t);
     EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (project_id)', t || '_project_idx', t);
@@ -302,7 +328,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['projects','users','positions','templates','tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts','equipment']
+                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity']
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('DROP POLICY IF EXISTS "Allow all operations for anon" ON %I', t);

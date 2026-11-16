@@ -220,6 +220,7 @@ export default function Team() {
             editing.id
               ? () => {
                   data.attendance.filter((a) => a.worker_id === editing.id).forEach((a) => removeRow('attendance', a.id));
+                  data.absences.filter((a) => a.worker_id === editing.id).forEach((a) => removeRow('absences', a.id));
                   removeRow('workers', editing.id);
                 }
               : null
