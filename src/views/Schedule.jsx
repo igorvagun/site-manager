@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useI18n } from '../lib/i18n';
 import { useData, addRow, updateRow, removeRow, notify } from '../lib/store';
 import { useOptions, TASK_STATUS } from '../lib/constants';
+import { TEMPLATES } from '../lib/templates';
 import { Glass, Badge, Segmented, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox } from '../components/ui';
 import { todayISO, addDays, diffDays, parseISO, fmtDate, fmtMoney, workingDays, taskBudget, plannedProgress, exportCSV, clamp, toISO } from '../lib/utils';
 
@@ -148,6 +149,7 @@ export default function Schedule() {
   const [status, setStatus] = useState('');
   const [floor, setFloor] = useState('');
   const [editing, setEditing] = useState(null);
+  const [templating, setTemplating] = useState(false);
   const today = todayISO();
 
   const all = useMemo(() => [...data.tasks].sort((a, b) => (a.position || 0) - (b.position || 0)), [data.tasks]);
@@ -206,6 +208,10 @@ export default function Schedule() {
         >
           <Icon name="download" size={16} />
           CSV
+        </button>
+        <button className="btn" onClick={() => setTemplating(true)}>
+          <Icon name="layers" size={16} />
+          {t('from_template')}
         </button>
         <button className="btn primary" onClick={() => setEditing(blank)}>
           <Icon name="plus" size={16} />
@@ -317,6 +323,37 @@ export default function Schedule() {
         </div>
       )}
 
+      {templating && (
+        <EntityForm
+          title={t('from_template')}
+          fields={[
+            { key: 'template', label: t('template'), type: 'select', options: Object.keys(TEMPLATES).map((k) => ({ value: k, label: `${t('tplset_' + k)} · ${TEMPLATES[k].length}` })) },
+            { key: 'start_date', label: t('start'), type: 'date', required: true, half: true },
+            { key: 'floor', label: t('floor'), type: 'select', options: o.floors, half: true },
+            { key: 'suffix', label: t('template_suffix'), placeholder: t('template_suffix_ph') },
+          ]}
+          initial={{ template: 'floor_cycle', start_date: all.length ? nextWorkday([...all].map((x) => x.end_date).sort().pop()) : today, floor: 'א', suffix: '' }}
+          onClose={() => setTemplating(false)}
+          onSave={async (v) => {
+            // Each step starts the working day after the previous one ends and depends on it.
+            let start = v.start_date;
+            let prev = null;
+            let pos = Math.max(0, ...all.map((x) => x.position || 0));
+            for (const [key, days, cost] of TEMPLATES[v.template]) {
+              let end = start;
+              for (let n = 1; n < days; n++) end = nextWorkday(end);
+              const row = await addRow('tasks', {
+                name: [t(key), v.suffix.trim()].filter(Boolean).join(' — '),
+                floor: v.floor, status: 'pending', progress: 0, start_date: start, end_date: end, daily_cost: cost,
+                workers: [], notes: '', description: '', media: [], drawing_id: null, depends_on: prev, position: ++pos,
+              });
+              prev = row?.id || null;
+              start = nextWorkday(end);
+            }
+            notify('template_added');
+          }}
+        />
+      )}
       {editing && (
         <EntityForm
           title={editing.id ? t('edit_task') : t('new_task')}

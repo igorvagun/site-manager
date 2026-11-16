@@ -26,6 +26,7 @@ Hebrew (RTL) and English, light and dark themes, desktop and mobile.
 | To-do | The manager's private checklist: lists, priorities, due dates, sub-steps, pinning |
 | Contacts | Directory of contractors, engineers, architects, suppliers; call, WhatsApp or in-app chat |
 | AI analyst | Day / week / month statistics from all tasks, chats and shifts; written conclusions when AI is connected |
+| Calendar | Every dated item of the project on a month grid |
 | Equipment | Machinery on site, rentals with running cost, return dates and inspections |
 | Project settings | Look (wallpaper, accent), details, delete project |
 

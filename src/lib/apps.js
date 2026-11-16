@@ -18,6 +18,7 @@ import Contacts from '../views/Contacts';
 import Insights from '../views/Insights';
 import Accounts from '../views/Accounts';
 import Equipment from '../views/Equipment';
+import Calendar from '../views/Calendar';
 
 const ALL = ['manager', 'foreman', 'worker'];
 const LEAD = ['manager', 'foreman'];
@@ -26,7 +27,8 @@ const LEAD = ['manager', 'foreman'];
 export const PROJECT_APPS = [
   { id: 'dashboard', icon: 'grid', color: 'accent', view: Dashboard, roles: LEAD },
   { id: 'team', icon: 'users', color: 'green', view: Team, roles: LEAD },
-  { id: 'schedule', icon: 'calendar', color: 'red', view: Schedule, roles: ALL },
+  { id: 'schedule', icon: 'chart', color: 'red', view: Schedule, roles: ALL },
+  { id: 'calendar', icon: 'calendar', color: 'violet', view: Calendar, roles: ALL },
   { id: 'log', icon: 'book', color: 'orange', view: DailyLog, roles: ALL },
   { id: 'budget', icon: 'wallet', color: 'indigo', view: Budget, roles: ['manager'] },
   { id: 'issues', icon: 'check', color: 'blue', view: Issues, roles: ALL },

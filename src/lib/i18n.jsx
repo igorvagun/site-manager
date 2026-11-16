@@ -659,6 +659,37 @@ Object.assign(D, {
   no_equipment: ['אין ציוד', 'No equipment'],
 });
 
+Object.assign(D, {
+  nav_calendar: ['יומן', 'Calendar'],
+  calendar_sub: ['כל המועדים של הפרויקט בלוח אחד', 'Every date in the project on one calendar'],
+  cal_events: ['אירועים', 'events'],
+  cal_nothing: ['אין אירועים ביום זה', 'Nothing on this day'],
+  pace_forecast: ['מסירה לפי הקצב', 'Handover at this pace'],
+  pace_hint: ['הערכה: משך הפרויקט חלקי היחס בין ההתקדמות בפועל למתוכננת', 'Estimate: project length divided by the ratio of actual to planned progress'],
+  days_short: ['ימים', 'd'],
+  from_template: ['מתבנית', 'From template'],
+  template: ['תבנית', 'Template'],
+  template_suffix: ['תוספת לשם (לא חובה)', 'Add to the names (optional)'],
+  template_suffix_ph: ['לדוגמה: קומה ד', 'e.g. floor 4'],
+  template_added: ['המשימות נוספו ללוח הזמנים', 'Tasks added to the schedule'],
+  tplset_site_setup: ['התארגנות אתר', 'Site setup'],
+  tplset_floor_cycle: ['מחזור קומה טיפוסית', 'Typical floor cycle'],
+  tplset_finishes: ['עבודות גמר', 'Finishes'],
+  tpl_fencing: ['גידור ושילוט', 'Fencing & signage'],
+  tpl_site_office: ['משרד אתר ותשתיות זמניות', 'Site office & temporary utilities'],
+  tpl_survey: ['מדידה וסימון', 'Survey & setting out'],
+  tpl_excavation: ['חפירה', 'Excavation'],
+  tpl_columns: ['עמודים ושלד', 'Columns & frame'],
+  tpl_slab: ['תקרה', 'Slab'],
+  tpl_strip: ['פירוק טפסנות ואשפרה', 'Strip formwork & curing'],
+  tpl_mep: ['חשמל ואינסטלציה', 'Electrical & plumbing rough-in'],
+  tpl_partitions: ['מחיצות', 'Partition walls'],
+  tpl_plaster: ['טיח', 'Plaster'],
+  tpl_flooring: ['ריצוף', 'Flooring'],
+  tpl_painting: ['צבע', 'Painting'],
+  tpl_fixtures: ['כלים סניטריים ואביזרים', 'Fixtures & fittings'],
+});
+
 export const LANGS = ['he', 'en', 'ru'];
 export const LANG_NAMES = { he: 'עברית', en: 'English', ru: 'Русский' };
 const Ctx = createContext(null);

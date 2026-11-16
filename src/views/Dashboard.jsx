@@ -53,10 +53,18 @@ export function useMetrics() {
     const lowStock = materials.filter((m) => Number(m.qty) < Number(m.min_qty));
     const lateTasks = tasks.filter((t) => t.status === 'delayed' || (t.status !== 'done' && t.end_date && t.end_date < today));
     const daysLeft = project.end_date ? diffDays(today, project.end_date) : null;
+    // If work keeps going at the pace so far, when does it finish? (duration ÷ progress-vs-plan ratio)
+    let forecastEnd = null;
+    let slipDays = 0;
+    if (project.start_date && project.end_date && planned > 3 && progress > 0 && progress < 100) {
+      const total = diffDays(project.start_date, project.end_date);
+      forecastEnd = addDays(project.start_date, Math.round(total / (progress / planned)));
+      slipDays = diffDays(project.end_date, forecastEnd);
+    }
 
     return {
       today, project, cur, progress, planned, budget, spent, forecast, approvedCO, onSite, activeWorkers,
-      openIssues, overdueIssues, safeDays, lowStock, lateTasks, daysLeft,
+      openIssues, overdueIssues, safeDays, lowStock, lateTasks, daysLeft, forecastEnd, slipDays,
     };
   }, [data]);
 }
@@ -254,6 +262,15 @@ export default function Dashboard({ go }) {
                 <span>{t('handover')}</span>
                 <b>{fmtDate(project.end_date, lang, { day: 'numeric', month: 'short', year: 'numeric' })}</b>
               </div>
+              {m.forecastEnd && (
+                <div title={t('pace_hint')}>
+                  <span>{t('pace_forecast')}</span>
+                  <b className={m.slipDays > 7 ? 'warn-text' : m.slipDays < -7 ? 'pos' : ''}>
+                    {fmtDate(m.forecastEnd, lang, { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {Math.abs(m.slipDays) > 0 && ` (${m.slipDays > 0 ? '+' : '−'}${Math.abs(m.slipDays)} ${t('days_short')})`}
+                  </b>
+                </div>
+              )}
               <div>
                 <span>{t('client')}</span>
                 <b>{project.client || '—'}</b>

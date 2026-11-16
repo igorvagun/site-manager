@@ -4036,3 +4036,124 @@ button.pin-tag:hover {
   outline: 2px dashed var(--red);
   outline-offset: 1px;
 }
+
+/* ───────── Calendar ───────── */
+.c-violet { --i1: #c7b5ff; --i2: #7a55e0; }
+.cal-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+.cal {
+  padding: 10px;
+  overflow: hidden;
+}
+.cal-title {
+  min-width: 150px;
+  text-align: center;
+  text-transform: capitalize;
+}
+.cal-head {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  padding: 4px 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  text-align: center;
+}
+.cal-head .off {
+  color: var(--text3);
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+.cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--fill);
+  border: 1.5px solid transparent;
+  min-width: 0;
+  overflow: hidden;
+  transition: background 0.15s;
+}
+.cal-day:hover {
+  background: var(--fill-2);
+}
+.cal-day.other {
+  opacity: 0.45;
+}
+.cal-day.off {
+  background: transparent;
+}
+.cal-day.on {
+  border-color: var(--blue-f);
+  background: color-mix(in srgb, var(--blue-f) 14%, transparent);
+}
+.cal-num {
+  font-size: 12.5px;
+  font-weight: 650;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+.cal-day.today .cal-num {
+  background: var(--blue-f);
+  color: #14213d;
+}
+.cal-chip {
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  padding: 1px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: start;
+  color: var(--ct);
+  background: color-mix(in srgb, var(--c) 24%, transparent);
+}
+.cal-more {
+  font-size: 10.5px;
+  color: var(--text2);
+  text-align: start;
+  padding-inline: 4px;
+}
+@media (max-width: 1000px) {
+  .cal-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .cal-chip {
+    font-size: 0;
+    padding: 0;
+    height: 5px;
+    border-radius: 99px;
+    background: var(--c);
+  }
+  .cal-day {
+    padding: 4px;
+    align-items: center;
+  }
+  .cal-grid {
+    grid-auto-rows: 58px !important;
+    grid-template-rows: none !important;
+  }
+  .cal-chip {
+    width: 100%;
+  }
+  .cal-more {
+    display: none;
+  }
+}
