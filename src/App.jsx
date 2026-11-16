@@ -21,9 +21,9 @@ const readRoute = () => {
 export function useTheme() {
   const [theme, setTheme] = useState(() => {
     try {
-      return localStorage.getItem('site-manager:theme') || 'auto';
+      return localStorage.getItem('site-manager:theme') || 'light';
     } catch {
-      return 'auto';
+      return 'light';
     }
   });
   const [dark, setDark] = useState(false);
