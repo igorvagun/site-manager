@@ -48,6 +48,7 @@ const ICONS = {
   idcard: 'M3 6h18v12H3zM8.5 12.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 15.5c.6-1.3 1.7-2 3-2s2.4.7 3 2M14 10h4M14 13.5h4',
   building: 'M5 21V4h9v17M14 9h5v12M3 21h18M8 8h3M8 12h3M8 16h3',
   back: 'M15 5l-7 7 7 7',
+  clipboard: 'M9 4h6v3H9zM7 5.5H5v15h14v-15h-2M8.5 13l2 2 4-4.5',
   columns: 'M4 5h4v14H4zM10 5h4v14h-4zM16 5h4v14h-4z',
   archive: 'M4 5h16v4H4zM6 9v10h12V9M10 13h4',
   mic: 'M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21',

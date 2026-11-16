@@ -304,6 +304,52 @@ CREATE TABLE IF NOT EXISTS activity (
 );
 CREATE INDEX IF NOT EXISTS activity_at_idx ON activity (at);
 
+-- Material requests: pending → approved → ordered → delivered (or rejected).
+CREATE TABLE IF NOT EXISTS requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  material_id UUID,
+  name TEXT DEFAULT '',
+  unit TEXT DEFAULT '',
+  qty NUMERIC NOT NULL DEFAULT 0,
+  needed_by DATE,
+  note TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending',
+  requested_by TEXT DEFAULT '',
+  approved_by TEXT, approved_at TIMESTAMPTZ,
+  rejected_by TEXT, rejected_at TIMESTAMPTZ,
+  ordered_by TEXT, ordered_at TIMESTAMPTZ,
+  delivered_by TEXT, delivered_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Quality checks. items: [{ text, state: pass|fail|na, note, issue_id }]
+CREATE TABLE IF NOT EXISTS inspections (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  stage TEXT NOT NULL,
+  date DATE NOT NULL,
+  task_id UUID,
+  floor TEXT DEFAULT '',
+  location TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'open', -- open | passed | failed
+  inspector TEXT DEFAULT '',
+  signed_at TIMESTAMPTZ,
+  items JSONB NOT NULL DEFAULT '[]'::JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Progress statements for the client. lines: [{ task_id, name, value, prev, now, amount }]
+CREATE TABLE IF NOT EXISTS statements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  number TEXT NOT NULL,
+  date DATE NOT NULL,
+  markup NUMERIC DEFAULT 0,
+  note TEXT DEFAULT '',
+  lines JSONB NOT NULL DEFAULT '[]'::JSONB,
+  total NUMERIC NOT NULL DEFAULT 0,
+  paid BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- File storage for drawings, voice and video notes, chat attachments and receipt photos.
 INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', FALSE) ON CONFLICT (id) DO NOTHING;
 DROP POLICY IF EXISTS "site-manager files" ON storage.objects;
@@ -315,7 +361,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity']
+                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements']
   LOOP
     EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE CASCADE', t);
     EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (project_id)', t || '_project_idx', t);
@@ -328,7 +374,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['projects','users','positions','templates','tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity']
+                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements']
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('DROP POLICY IF EXISTS "Allow all operations for anon" ON %I', t);

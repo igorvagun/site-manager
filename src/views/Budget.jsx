@@ -5,6 +5,7 @@ import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, CATEGORIES, CO_STATUS } from '../lib/constants';
 import { Glass, Card, Icon, Badge, Meter, EntityForm, Empty, PageHead, SearchBox, Stat, IconButton } from '../components/ui';
 import { useMetrics } from './Dashboard';
+import Statements from './Statements';
 import { todayISO, fmtDate, fmtMoney, fmtMoneyFull, sum, exportCSV } from '../lib/utils';
 
 export default function Budget() {
@@ -147,6 +148,8 @@ export default function Budget() {
           )}
         </Card>
       </div>
+
+      <Statements />
 
       <Glass className="toolbar">
         <SearchBox value={q} onChange={setQ} placeholder={t('search_expenses')} />

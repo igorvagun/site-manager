@@ -19,10 +19,10 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 | Week plan | The next seven days by day, with the crew plan, planned time off, and double bookings flagged; printable |
 | Calendar | Every dated item of the project on a month grid |
 | Daily Log | Site diary pre-drafted from the day's tasks; photos; printable daily report |
-| Budget | Budget vs actual by category, expenses, change orders, forecast |
+| Budget | Budget vs actual by category, expenses, change orders, forecast; progress statements for the client |
 | Issues | Punch list and RFIs on a drag-and-drop board; issues can be pinned to a drawing |
 | Safety | Inspections with checklist, toolbox talks, hazards, incidents |
-| Materials | On-site stock, minimum levels, deliveries |
+| Materials | On-site stock, minimum levels, deliveries; material requests with manager approval |
 | Equipment | Machinery on site, rentals with running cost, return dates, inspections |
 | Photos | Every photo from daily logs, issues and task chats, by date |
 | Drawings | Library of drawings (images, PDF), zooming viewer, issue pins |
@@ -32,6 +32,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 | To-do | The manager's private checklist: lists, priorities, due dates, sub-steps, pinning |
 | Contacts | Contractors, engineers, architects, suppliers; call, WhatsApp or in-app chat |
 | AI analyst | Day / week / month statistics from tasks, chats and shifts; written conclusions when AI is connected |
+| Quality | Acceptance checklists by stage, sign-off, failed items turned into issues |
 | History | Who changed what: tasks, issues, money, crew, equipment — with old and new values |
 | Project settings | Look (wallpaper, accent), details, delete project |
 
@@ -102,3 +103,4 @@ bucket `files` in cloud mode. JSON backups contain data only, not these files.
 - **Labour cost of a task:** hours between start and finish × each worker's hourly rate, using the time clock, or the project's standard shift when there is no entry.
 - **Payroll:** hours above the project's standard shift in a day count as overtime — the first 2 at 125%, the rest at 150%.
 - **Handover forecast:** project length ÷ (actual progress ÷ planned progress).
+- **Client statement:** task value = planned cost (working days × daily cost) + the markup you enter; each statement bills only progress not billed before.

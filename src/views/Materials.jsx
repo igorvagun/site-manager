@@ -4,6 +4,7 @@ import { routeQuery } from '../lib/nav';
 import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { Glass, Icon, Badge, Meter, EntityForm, Empty, PageHead, SearchBox, Stat, IconButton, Segmented } from '../components/ui';
 import { todayISO, addDays, fmtDate, exportCSV } from '../lib/utils';
+import Requests from './Requests';
 
 export default function Materials() {
   const { t, lang } = useI18n();
@@ -12,6 +13,8 @@ export default function Materials() {
   const [q, setQ] = useState(routeQuery);
   const [only, setOnly] = useState('all');
   const [editing, setEditing] = useState(null);
+  const [tab, setTab] = useState('stock');
+  const waiting = data.requests.filter((r) => ['pending', 'approved', 'ordered'].includes(r.status)).length;
 
   const isLow = (m) => Number(m.qty) < Number(m.min_qty);
   const list = [...data.materials]
@@ -67,6 +70,12 @@ export default function Materials() {
       </div>
 
       <Glass className="toolbar">
+        <Segmented value={tab} onChange={setTab} options={[{ value: 'stock', label: t('tab_stock') }, { value: 'requests', label: t('tab_requests'), count: waiting }]} />
+      </Glass>
+      {tab === 'requests' && <Requests />}
+
+      {tab === 'stock' && (
+      <Glass className="toolbar">
         <Segmented
           value={only}
           onChange={setOnly}
@@ -77,8 +86,9 @@ export default function Materials() {
         />
         <SearchBox value={q} onChange={setQ} placeholder={t('search_materials')} />
       </Glass>
+      )}
 
-      {list.length === 0 ? (
+      {tab !== 'stock' ? null : list.length === 0 ? (
         <Glass><Empty icon="box" text={t('no_materials')} /></Glass>
       ) : (
         <div className="grid material-grid">

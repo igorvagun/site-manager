@@ -83,7 +83,9 @@ function useBadges(user, project) {
     schedule: data.tasks.filter((x) => mine(x) && (x.status === 'delayed' || (x.status !== 'done' && x.end_date < today))).length,
     issues: data.issues.filter((x) => x.status !== 'done' && x.due_date && x.due_date < today).length,
     safety: data.safety.filter((x) => x.status === 'open').length,
-    materials: data.materials.filter((x) => Number(x.qty) < Number(x.min_qty)).length,
+    // Managers also see requests waiting for their approval.
+    materials: data.materials.filter((x) => Number(x.qty) < Number(x.min_qty)).length + (user.role === 'manager' ? data.requests.filter((r) => r.status === 'pending').length : 0),
+    quality: data.inspections.filter((x) => x.status === 'failed').length,
     equipment: equipmentAlerts(data.equipment, today).overdue.length + data.equipment.filter((e) => e.status !== 'returned' && e.inspection_date && e.inspection_date < today).length,
     todo: data.todos.filter((x) => x.user_id === user.id && !x.done && x.due_date && x.due_date <= today).length,
     tasklog: data.messages.filter(

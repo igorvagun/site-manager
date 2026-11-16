@@ -23,6 +23,7 @@ import Overview from '../views/Overview';
 import Photos from '../views/Photos';
 import WeekPlan from '../views/WeekPlan';
 import History from '../views/History';
+import Quality from '../views/Quality';
 
 const ALL = ['manager', 'foreman', 'worker'];
 const LEAD = ['manager', 'foreman'];
@@ -50,6 +51,7 @@ export const PROJECT_APPS = [
   { id: 'todo', group: 'control', icon: 'list', color: 'slate', view: Todo, roles: ['manager'] },
   { id: 'contacts', group: 'people', icon: 'phone', color: 'lime', view: Contacts, roles: LEAD },
   { id: 'insights', group: 'control', icon: 'sparkle', color: 'purple', view: Insights, roles: ['manager'] },
+  { id: 'quality', group: 'control', icon: 'clipboard', color: 'jade', view: Quality, roles: LEAD },
   { id: 'history', group: 'control', icon: 'clock', color: 'slate', view: History, roles: ['manager'] },
   { id: 'style', group: 'control', icon: 'gear', color: 'gray', view: ProjectSettings, roles: ['manager'] },
 ];
