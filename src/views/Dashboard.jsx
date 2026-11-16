@@ -17,9 +17,8 @@ import {
   clamp,
 } from '../lib/utils';
 
-export function useMetrics() {
-  const data = useData();
-  return useMemo(() => {
+// Key numbers of one project. `data` holds that project's rows only (see useData).
+export function computeMetrics(data) {
     const today = todayISO();
     const { tasks, expenses, budget_lines, change_orders, attendance, workers, issues, safety, materials } = data;
     const project = data.project[0] || {};
@@ -66,7 +65,10 @@ export function useMetrics() {
       today, project, cur, progress, planned, budget, spent, forecast, approvedCO, onSite, activeWorkers,
       openIssues, overdueIssues, safeDays, lowStock, lateTasks, daysLeft, forecastEnd, slipDays,
     };
-  }, [data]);
+}
+export function useMetrics() {
+  const data = useData();
+  return useMemo(() => computeMetrics(data), [data]);
 }
 
 // Cumulative spend vs. a straight-line plan across the project duration.

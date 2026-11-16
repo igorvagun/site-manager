@@ -152,6 +152,10 @@ export default function Schedule() {
   const [templating, setTemplating] = useState(false);
   // Workers can read the schedule; planning and money are for managers and foremen.
   const canEdit = useUser().role !== 'worker';
+  const [savingTpl, setSavingTpl] = useState(false);
+  // Built-in templates plus the ones saved from real schedules: key → [[name, working days, cost per day], …]
+  const custom = data.templates || [];
+  const templateSteps = (key) => (TEMPLATES[key] ? TEMPLATES[key].map(([k, d, c]) => [t(k), d, c]) : (custom.find((x) => x.id === key)?.steps || []).map((x) => [x.name, x.days, x.cost]));
   const today = todayISO();
 
   const all = useMemo(() => [...data.tasks].sort((a, b) => (a.position || 0) - (b.position || 0)), [data.tasks]);
@@ -216,6 +220,10 @@ export default function Schedule() {
         <button className="btn" onClick={() => setTemplating(true)}>
           <Icon name="layers" size={16} />
           {t('from_template')}
+        </button>
+        <button className="btn" onClick={() => setSavingTpl(true)} disabled={visible.length === 0} title={t('save_template_hint')}>
+          <Icon name="upload" size={16} />
+          {t('save_template')}
         </button>
         <button className="btn primary" onClick={() => setEditing(blank)}>
           <Icon name="plus" size={16} />
@@ -329,11 +337,29 @@ export default function Schedule() {
         </div>
       )}
 
+      {savingTpl && (
+        <EntityForm
+          title={t('save_template')}
+          fields={[
+            { key: 'name', label: t('template_name'), required: true, placeholder: t('template_name_ph') },
+            { key: 'drop', label: t('template_replace'), type: 'select', options: [{ value: '', label: '—' }, ...custom.map((x) => ({ value: x.id, label: x.name }))], when: () => custom.length > 0 },
+          ]}
+          initial={{ name: '', drop: '' }}
+          onClose={() => setSavingTpl(false)}
+          onSave={(v) => {
+            // The tasks on screen, in order, with their working-day lengths and daily cost.
+            const steps = visible.map((x) => ({ name: x.name, days: Math.max(1, workingDays(x.start_date, x.end_date)), cost: Number(x.daily_cost) || 0 }));
+            if (v.drop) removeRow('templates', v.drop, { silent: true });
+            addRow('templates', { name: v.name.trim(), steps });
+            notify('template_saved');
+          }}
+        />
+      )}
       {templating && (
         <EntityForm
           title={t('from_template')}
           fields={[
-            { key: 'template', label: t('template'), type: 'select', options: Object.keys(TEMPLATES).map((k) => ({ value: k, label: `${t('tplset_' + k)} · ${TEMPLATES[k].length}` })) },
+            { key: 'template', label: t('template'), type: 'select', options: [...Object.keys(TEMPLATES).map((k) => ({ value: k, label: `${t('tplset_' + k)} · ${TEMPLATES[k].length}` })), ...custom.map((x) => ({ value: x.id, label: `★ ${x.name} · ${x.steps.length}` }))] },
             { key: 'start_date', label: t('start'), type: 'date', required: true, half: true },
             { key: 'floor', label: t('floor'), type: 'select', options: o.floors, half: true },
             { key: 'suffix', label: t('template_suffix'), placeholder: t('template_suffix_ph') },
@@ -345,11 +371,11 @@ export default function Schedule() {
             let start = v.start_date;
             let prev = null;
             let pos = Math.max(0, ...all.map((x) => x.position || 0));
-            for (const [key, days, cost] of TEMPLATES[v.template]) {
+            for (const [stepName, days, cost] of templateSteps(v.template)) {
               let end = start;
               for (let n = 1; n < days; n++) end = nextWorkday(end);
               const row = await addRow('tasks', {
-                name: [t(key), v.suffix.trim()].filter(Boolean).join(' — '),
+                name: [stepName, v.suffix.trim()].filter(Boolean).join(' — '),
                 floor: v.floor, status: 'pending', progress: 0, start_date: start, end_date: end, daily_cost: cost,
                 workers: [], notes: '', description: '', media: [], drawing_id: null, depends_on: prev, position: ++pos,
               });

@@ -262,6 +262,16 @@ CREATE TABLE IF NOT EXISTS equipment (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE issues ADD COLUMN IF NOT EXISTS created_by UUID;
+
+-- Reusable task chains saved from real schedules. steps: [{ name, days, cost }]
+CREATE TABLE IF NOT EXISTS templates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  steps JSONB NOT NULL DEFAULT '[]'::JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- File storage for drawings, voice and video notes, chat attachments and receipt photos.
 INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', FALSE) ON CONFLICT (id) DO NOTHING;
 DROP POLICY IF EXISTS "site-manager files" ON storage.objects;
@@ -284,7 +294,7 @@ END $$;
 DO $$
 DECLARE t TEXT;
 BEGIN
-  FOREACH t IN ARRAY ARRAY['projects','users','positions','tasks','workers','attendance','logs','expenses',
+  FOREACH t IN ARRAY ARRAY['projects','users','positions','templates','tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
                            'drawings','messages','shifts','todos','contacts','equipment']
   LOOP

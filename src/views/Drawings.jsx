@@ -148,7 +148,7 @@ export function DrawingViewer({ drawing, onClose, focusIssue }) {
           initial={draft}
           onClose={() => setDraft(null)}
           onSave={async (v) => {
-            const row = await addRow('issues', v);
+            const row = await addRow('issues', { ...v, created_by: user.id });
             if (row) setActive(row.id);
           }}
         />

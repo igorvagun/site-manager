@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
-import { useData, addRow, updateRow, removeRow } from '../lib/store';
+import { useData, useUser, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, WEATHER } from '../lib/constants';
 import { Glass, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox, Modal } from '../components/ui';
 import { todayISO, fmtDate, fmtTime, fmtHours, fmtMoneyFull, hoursBetween, sum, exportCSV } from '../lib/utils';
@@ -143,6 +143,7 @@ export default function DailyLog() {
   const [q, setQ] = useState('');
   const [photo, setPhoto] = useState(null);
   const [report, setReport] = useState(null);
+  const lead = useUser().role !== 'worker'; // the diary is written by managers and foremen; workers read it
   const today = todayISO();
 
   const logs = [...data.logs]
@@ -208,7 +209,7 @@ export default function DailyLog() {
           <Icon name="download" size={16} />
           CSV
         </button>
-        <button className="btn primary" onClick={newEntry}>
+        <button className="btn primary" onClick={newEntry} hidden={!lead}>
           <Icon name="plus" size={16} />
           {t('new_log')}
         </button>
@@ -240,7 +241,7 @@ export default function DailyLog() {
                     <Icon name="printer" size={14} />
                     {t('daily_report')}
                   </button>
-                  <IconButton icon="edit" label={t('edit')} onClick={() => setEditing(l)} />
+                  {lead && <IconButton icon="edit" label={t('edit')} onClick={() => setEditing(l)} />}
                 </header>
                 <small>
                   <Icon name="users" size={13} /> {l.crew_count} {t('workers')}

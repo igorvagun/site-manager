@@ -6,7 +6,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 ## How it is organised
 
 1. **Sign in.** The app recognises the person's role — project manager, foreman or worker — and shows only what that role may use.
-2. **Home desktop.** App icons, like a phone home screen: one icon per project, plus New project, Accounts, Positions and Settings.
+2. **Home desktop.** App icons, like a phone home screen: one icon per project, plus New project, All projects (side-by-side comparison), Accounts, Positions and Settings.
 3. **Project desktop.** Each project has its own wallpaper and accent colour, its own data, and its own set of sub-apps. Icons carry a count of things needing attention.
 
 ### Project sub-apps
@@ -15,7 +15,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 | --- | --- |
 | Dashboard | Progress vs plan, handover forecast at the current pace, budget, crew, alerts, spend chart, next 7 days |
 | Team | Workers with full details, daily attendance, chat with each worker |
-| Schedule | Task list and Gantt, priorities, dependencies with one-tap shifting, task templates |
+| Schedule | Task list and Gantt, priorities, dependencies with one-tap shifting, built-in and your own task templates |
 | Calendar | Every dated item of the project on a month grid |
 | Daily Log | Site diary pre-drafted from the day's tasks; photos; printable daily report |
 | Budget | Budget vs actual by category, expenses, change orders, forecast |
@@ -48,7 +48,8 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 | Budget, to-do, AI analyst, project settings | yes | no | no |
 | Team, materials, equipment, receipts, contacts, dashboard | yes | yes | no |
 | Edit the schedule, see costs and pay rates | yes | yes | no |
-| Own tasks, time clock, drawings, issues, safety, daily log, calendar | yes | yes | yes |
+| Write the daily log, keep safety records, edit or delete any issue | yes | yes | no |
+| Own tasks, time clock, drawings, calendar; raise issues, report hazards, read the daily log | yes | yes | yes |
 
 ## Run
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
-import { useData, addRow, updateRow, removeRow } from '../lib/store';
+import { useData, useUser, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, SAFETY_TYPES, PRIORITY, CHECKLIST } from '../lib/constants';
 import { Glass, Icon, Badge, Segmented, EntityForm, Empty, PageHead, Stat, IconButton } from '../components/ui';
 import { useMetrics } from './Dashboard';
@@ -16,6 +16,9 @@ export default function Safety() {
   const today = todayISO();
   const [type, setType] = useState('all');
   const [editing, setEditing] = useState(null);
+  // Workers can report a hazard; the safety record itself is kept by managers and foremen.
+  const user = useUser();
+  const lead = user.role !== 'worker';
 
   const month = today.slice(0, 7);
   const list = [...data.safety].sort((a, b) => b.date.localeCompare(a.date)).filter((s) => type === 'all' || s.type === type);
@@ -61,7 +64,7 @@ export default function Safety() {
           <Icon name="alert" size={16} />
           {t('report_hazard')}
         </button>
-        <button className="btn primary" onClick={() => setEditing(blank())}>
+        <button className="btn primary" onClick={() => setEditing(blank())} hidden={!lead}>
           <Icon name="plus" size={16} />
           {t('new_record')}
         </button>
@@ -96,7 +99,7 @@ export default function Safety() {
                 <div className="log-body">
                   <header>
                     <h3>{s.title}</h3>
-                    <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...s, checklist: s.checklist || allChecked })} />
+                    {lead && <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...s, checklist: s.checklist || allChecked })} />}
                   </header>
                   <div className="task-meta">
                     <Badge tone={SAFETY_TYPES[s.type]}>{t('sf_' + s.type)}</Badge>
@@ -104,9 +107,13 @@ export default function Safety() {
                     {s.reporter && <span>{s.reporter}</span>}
                     {s.type !== 'toolbox' && s.type !== 'inspection' && <Badge tone={PRIORITY[s.severity]}>{t('severity')}: {t('pr_' + s.severity)}</Badge>}
                     {s.status === 'open' ? (
-                      <button className="badge tone-red" onClick={() => updateRow('safety', s.id, { status: 'closed' })} title={t('mark_closed')}>
-                        {t('ss_open')} · {t('mark_closed')}
-                      </button>
+                      lead ? (
+                        <button className="badge tone-red" onClick={() => updateRow('safety', s.id, { status: 'closed' })} title={t('mark_closed')}>
+                          {t('ss_open')} · {t('mark_closed')}
+                        </button>
+                      ) : (
+                        <Badge tone="red">{t('ss_open')}</Badge>
+                      )
                     ) : (
                       <Badge tone="green">{t('ss_closed')}</Badge>
                     )}
@@ -133,14 +140,14 @@ export default function Safety() {
       {editing && (
         <EntityForm
           title={editing.id ? t('edit_record') : t('new_record')}
-          fields={fields}
-          initial={editing}
+          fields={lead ? fields : fields.filter((f) => ['date', 'title', 'severity', 'description'].includes(f.key))}
+          initial={lead ? editing : { ...editing, type: 'hazard', status: 'open', reporter: user.name }}
           onClose={() => setEditing(null)}
           onSave={(v) => {
             const row = { ...v, checklist: v.type === 'inspection' ? v.checklist : null };
             editing.id ? updateRow('safety', editing.id, row) : addRow('safety', row);
           }}
-          onDelete={editing.id ? () => removeRow('safety', editing.id) : null}
+          onDelete={editing.id && lead ? () => removeRow('safety', editing.id) : null}
         />
       )}
     </>

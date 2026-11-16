@@ -4194,3 +4194,20 @@ input[type='range']:disabled {
     font-size: 13px;
   }
 }
+
+/* ───────── Projects overview ───────── */
+.overview td {
+  padding-block: 14px;
+}
+.overview tr.clickable {
+  cursor: pointer;
+}
+.ov-bar {
+  min-width: 170px;
+}
+.ov-bar .cat-top {
+  margin-bottom: 6px;
+}
+[hidden] {
+  display: none !important;
+}

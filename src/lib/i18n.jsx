@@ -690,6 +690,21 @@ Object.assign(D, {
   tpl_fixtures: ['כלים סניטריים ואביזרים', 'Fixtures & fittings'],
 });
 
+Object.assign(D, {
+  nav_overview: ['כל הפרויקטים', 'All projects'],
+  overview_sub: ['השוואת הפרויקטים: התקדמות, תקציב, כוח אדם ובעיות', 'Projects side by side: progress, budget, crew and problems'],
+  ov_behind: ['בפיגור', 'behind plan'],
+  ov_attention: ['דורש טיפול', 'Needs attention'],
+  ov_attention_sub: ['משימות וליקויים באיחור', 'late tasks and overdue issues'],
+  ov_late_tasks: ['משימות באיחור', 'Late tasks'],
+  save_template: ['שמור כתבנית', 'Save as template'],
+  save_template_hint: ['שומר את המשימות המוצגות כתבנית לשימוש חוזר', 'Saves the tasks shown as a reusable template'],
+  template_name: ['שם התבנית', 'Template name'],
+  template_name_ph: ['לדוגמה: מחזור קומה שלנו', 'e.g. Our floor cycle'],
+  template_replace: ['החלף תבנית קיימת', 'Replace an existing template'],
+  template_saved: ['התבנית נשמרה', 'Template saved'],
+});
+
 export const LANGS = ['he', 'en', 'ru'];
 export const LANG_NAMES = { he: 'עברית', en: 'English', ru: 'Русский' };
 const Ctx = createContext(null);

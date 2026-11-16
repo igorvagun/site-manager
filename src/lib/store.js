@@ -4,7 +4,7 @@ import { buildSeed } from './seed';
 import { uid } from './utils';
 
 // Collections shared by the whole account vs. rows that belong to one project.
-export const GLOBAL = ['users', 'positions', 'projects'];
+export const GLOBAL = ['users', 'positions', 'projects', 'templates'];
 export const SCOPED = [
   'tasks',
   'workers',

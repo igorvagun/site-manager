@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
 import { routeQuery } from '../lib/nav';
-import { useData, addRow, updateRow, removeRow } from '../lib/store';
+import { useData, useUser, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, ISSUE_STATUS, PRIORITY } from '../lib/constants';
 import { Glass, Icon, Badge, Segmented, EntityForm, PageHead, SearchBox } from '../components/ui';
 import { todayISO, addDays, fmtDate, exportCSV } from '../lib/utils';
@@ -21,6 +21,10 @@ export default function Issues() {
   const [drag, setDrag] = useState(null);
   const [over, setOver] = useState(null);
   const [pinView, setPinView] = useState(null);
+  // Anyone can raise an issue and move it along; only managers and foremen edit or delete other people's.
+  const user = useUser();
+  const lead = user.role !== 'worker';
+  const canEdit = (i) => lead || i.created_by === user.id;
 
   const list = data.issues
     .filter((i) => (type === 'all' || i.type === type) && (!q || `${i.title} ${i.description} ${i.assignee}`.toLowerCase().includes(q.toLowerCase())))
@@ -116,7 +120,7 @@ export default function Issues() {
                       <Badge tone={i.type === 'rfi' ? 'purple' : 'blue'}>{t('it_' + i.type)}</Badge>
                       <Badge tone={PRIORITY[i.priority]}>{t('pr_' + i.priority)}</Badge>
                     </div>
-                    <button className="issue-title" onClick={() => setEditing(i)}>{i.title}</button>
+                    <button className="issue-title" onClick={() => canEdit(i) && setEditing(i)}>{i.title}</button>
                     {i.description && <p>{i.description}</p>}
                     {i.photo && <img src={i.photo} alt="" />}
                     <footer>
@@ -162,8 +166,8 @@ export default function Issues() {
           fields={fields}
           initial={editing}
           onClose={() => setEditing(null)}
-          onSave={(v) => (editing.id ? updateRow('issues', editing.id, v) : addRow('issues', v))}
-          onDelete={editing.id ? () => removeRow('issues', editing.id) : null}
+          onSave={(v) => (editing.id ? updateRow('issues', editing.id, v) : addRow('issues', { ...v, created_by: user.id }))}
+          onDelete={editing.id && lead ? () => removeRow('issues', editing.id) : null}
         />
       )}
     </>
