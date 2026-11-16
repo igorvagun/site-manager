@@ -28,6 +28,19 @@ export default function DailyLog() {
     { key: 'delays', label: t('delays_issues'), type: 'textarea', placeholder: t('delays_ph') },
     { key: 'photos', label: t('photos'), type: 'photos' },
   ];
+  // Draft of today's entry from what the other apps already know; the author edits it before saving.
+  const draft = () => {
+    const done = data.tasks.filter((x) => x.finished_at && x.finished_at.slice(0, 10) === new Date().toISOString().slice(0, 10));
+    const active = data.tasks.filter((x) => x.status === 'active');
+    const deliveries = data.materials.filter((m) => m.next_delivery === today);
+    const lines = [
+      ...done.map((x) => `✓ ${x.name}`),
+      ...active.map((x) => `• ${x.name} — ${x.progress || 0}%`),
+      ...deliveries.map((m) => `${t('delivery')}: ${m.name}`),
+    ];
+    const late = data.tasks.filter((x) => x.status === 'delayed' || (x.status !== 'done' && x.end_date < today));
+    return { summary: lines.join('\n'), delays: late.map((x) => `${t('alert_late_task')}: ${x.name}`).join('\n') };
+  };
   const blank = {
     date: today,
     author: data.project[0]?.manager || '',
@@ -38,6 +51,7 @@ export default function DailyLog() {
     delays: '',
     photos: [],
   };
+  const newEntry = () => setEditing(logs.some((l) => l.date === today) ? blank : { ...blank, ...draft() });
 
   return (
     <>
@@ -63,7 +77,7 @@ export default function DailyLog() {
           <Icon name="download" size={16} />
           CSV
         </button>
-        <button className="btn primary" onClick={() => setEditing(blank)}>
+        <button className="btn primary" onClick={newEntry}>
           <Icon name="plus" size={16} />
           {t('new_log')}
         </button>

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { routeQuery } from '../lib/nav';
 import { useData, useUser, addRow, updateRow, removeRow, notify } from '../lib/store';
 import { putFile, deleteFile, useFileURL } from '../lib/files';
 import { Glass, Icon, IconButton, Badge, EntityForm, Empty, PageHead, SearchBox, Segmented, Modal } from '../components/ui';
@@ -70,7 +71,7 @@ export default function Drawings() {
   const data = useData();
   const user = useUser();
   const canEdit = user.role !== 'worker';
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(routeQuery);
   const [disc, setDisc] = useState('all');
   const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);

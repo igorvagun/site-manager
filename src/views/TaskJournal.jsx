@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { routeQuery } from '../lib/nav';
 import { useData, useUser, addRow, updateRow, removeRow, notify } from '../lib/store';
 import { putFile, deleteFile } from '../lib/files';
 import { useOptions, TASK_STATUS } from '../lib/constants';
@@ -234,7 +235,7 @@ export default function TaskJournal() {
   const me = data.workers.find((w) => w.user_id === user.id);
   const baseFields = useTaskFields();
   const [tab, setTab] = useState('active');
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(routeQuery);
   const [openId, setOpenId] = useState(null);
   const [editing, setEditing] = useState(null);
   const today = todayISO();
@@ -243,7 +244,8 @@ export default function TaskJournal() {
   const mine = canEdit ? data.tasks : data.tasks.filter((x) => me && (x.workers || []).includes(me.name));
   const group = (x) => (x.finished_at || x.status === 'done' ? 'done' : x.started_at ? 'active' : 'planned');
   const list = mine
-    .filter((x) => group(x) === tab && (!q || x.name.toLowerCase().includes(q.toLowerCase())))
+    // A search looks through every tab, not just the selected one.
+    .filter((x) => (q ? x.name.toLowerCase().includes(q.toLowerCase()) : group(x) === tab))
     .sort((a, b) => (tab === 'done' ? String(b.finished_at).localeCompare(String(a.finished_at)) : (a.position || 0) - (b.position || 0)));
   const count = (g) => mine.filter((x) => group(x) === g).length;
   const open = data.tasks.find((x) => x.id === openId);

@@ -1,3 +1,4 @@
+import { RU } from './i18n-ru';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 // key: [Hebrew, English]
@@ -559,13 +560,45 @@ Object.assign(D, {
   ai_not_connected_long: ['המספרים בעמוד זה מחושבים מהנתונים האמיתיים כבר עכשיו. המסקנות בכתב יופעלו לאחר חיבור Supabase והגדרת מפתח Claude API בפונקציית השרת.', 'The numbers on this page are already computed from your real data. Written conclusions turn on once Supabase is connected and a Claude API key is set on the server function.'],
 });
 
+Object.assign(D, {
+  search_everything: ['חיפוש בכל המערכת…', 'Search everything…'],
+  no_results: ['לא נמצאו תוצאות', 'Nothing found'],
+  grp_projects: ['פרויקטים', 'Projects'],
+  grp_apps: ['יישומים', 'Apps'],
+  grp_tasks: ['משימות', 'Tasks'],
+  grp_workers: ['עובדים', 'Workers'],
+  grp_contacts: ['אנשי קשר', 'Contacts'],
+  grp_drawings: ['שרטוטים', 'Drawings'],
+  grp_issues: ['ליקויים', 'Issues'],
+  grp_materials: ['חומרים', 'Materials'],
+  my_day: ['היום שלי', 'My day'],
+  my_tasks: ['המשימות שלי', 'My tasks'],
+  no_my_tasks: ['אין לך משימות פתוחות', 'You have no open tasks'],
+  nav_accounts: ['משתמשים', 'Accounts'],
+  accounts_sub: ['מי יכול להתחבר ובאיזה תפקיד', 'Who can sign in, and in which role'],
+  new_account: ['משתמש חדש', 'New account'],
+  edit_account: ['עריכת משתמש', 'Edit account'],
+  account_role: ['תפקיד במערכת', 'Role in the app'],
+  login_account: ['חשבון כניסה', 'Sign-in account'],
+  no_login: ['ללא כניסה למערכת', 'No sign-in'],
+  email_taken: ['כתובת הדוא״ל כבר בשימוש', 'That email is already in use'],
+  demo_password_note: ['במצב הדגמה כל המשתמשים נכנסים עם הסיסמה', 'In demo mode every account signs in with the password'],
+  you: ['אני', 'You'],
+  no_project_access: ['לא משויך לפרויקט — שייכו בעמוד הצוות', 'Not on any project — link them in a project’s Team app'],
+  home_look: ['מראה המסך הראשי', 'Home screen look'],
+  install_app: ['התקן כאפליקציה', 'Install as an app'],
+  offline_ready: ['האפליקציה זמינה גם ללא חיבור', 'The app also works offline'],
+});
+
+export const LANGS = ['he', 'en', 'ru'];
+export const LANG_NAMES = { he: 'עברית', en: 'English', ru: 'Русский' };
 const Ctx = createContext(null);
 
 export function I18nProvider({ children }) {
   const [lang, setLangState] = useState(() => {
     try {
       const saved = localStorage.getItem('site-manager:lang');
-      if (saved === 'he' || saved === 'en') return saved;
+      if (LANGS.includes(saved)) return saved;
     } catch {
       /* private mode */
     }
@@ -574,7 +607,7 @@ export function I18nProvider({ children }) {
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
-    document.title = lang === 'he' ? 'Site Manager | ניהול אתר בנייה' : 'Site Manager';
+    document.title = lang === 'he' ? 'Site Manager | ניהול אתר בנייה' : lang === 'ru' ? 'Site Manager | Управление стройкой' : 'Site Manager';
   }, [lang]);
   const setLang = useCallback((l) => {
     setLangState(l);
@@ -584,7 +617,7 @@ export function I18nProvider({ children }) {
       /* private mode */
     }
   }, []);
-  const t = useCallback((key) => (D[key] ? D[key][lang === 'he' ? 0 : 1] : key), [lang]);
+  const t = useCallback((key) => (lang === 'ru' && RU[key] ? RU[key] : D[key] ? D[key][lang === 'he' ? 0 : 1] : key), [lang]);
   const value = useMemo(() => ({ t, lang, setLang }), [t, lang, setLang]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

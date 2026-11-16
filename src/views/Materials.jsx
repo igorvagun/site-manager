@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { routeQuery } from '../lib/nav';
 import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { Glass, Icon, Badge, Meter, EntityForm, Empty, PageHead, SearchBox, Stat, IconButton, Segmented } from '../components/ui';
 import { todayISO, addDays, fmtDate, exportCSV } from '../lib/utils';
@@ -8,7 +9,7 @@ export default function Materials() {
   const { t, lang } = useI18n();
   const data = useData();
   const today = todayISO();
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(routeQuery);
   const [only, setOnly] = useState('all');
   const [editing, setEditing] = useState(null);
 

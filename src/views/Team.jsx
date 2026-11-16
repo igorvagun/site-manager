@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { routeQuery } from '../lib/nav';
 import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, ATTENDANCE } from '../lib/constants';
 import { Glass, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox, Stat } from '../components/ui';
@@ -13,7 +14,7 @@ export default function Team() {
   const cur = data.project[0]?.currency || '₪';
   const today = todayISO();
   const [date, setDate] = useState(today);
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(routeQuery);
   const [editing, setEditing] = useState(null);
   const [chat, setChat] = useState(null);
 
@@ -58,9 +59,10 @@ export default function Team() {
     { key: 'daily_rate', label: t('daily_rate'), type: 'number', min: 0, half: true },
     { key: 'emergency_contact', label: t('emergency_contact'), half: true },
     { key: 'active', label: t('status'), type: 'select', half: true, options: [{ value: 'yes', label: t('active') }, { value: 'no', label: t('inactive') }] },
+    { key: 'user_id', label: t('login_account'), type: 'select', options: [{ value: '', label: t('no_login') }, ...data.users.filter((u) => u.role !== 'manager').map((u) => ({ value: u.id, label: `${u.name} · ${u.email}` }))] },
     { key: 'notes', label: t('notes'), type: 'textarea' },
   ];
-  const blankWorker = { name: '', role: '', company: '', phone: '', email: '', id_number: '', start_date: today, hourly_rate: '', daily_rate: '', emergency_contact: '', notes: '', active: 'yes' };
+  const blankWorker = { user_id: '', name: '', role: '', company: '', phone: '', email: '', id_number: '', start_date: today, hourly_rate: '', daily_rate: '', emergency_contact: '', notes: '', active: 'yes' };
 
   return (
     <>
@@ -123,7 +125,7 @@ export default function Team() {
                     <small>{[w.role, w.company].filter(Boolean).join(' · ')}</small>
                   </div>
                   <IconButton icon="chat" label={t('message')} onClick={() => setChat(w)} />
-                  <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...blankWorker, ...w, start_date: w.start_date || '', active: w.active === false ? 'no' : 'yes' })} />
+                  <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...blankWorker, ...w, start_date: w.start_date || '', user_id: w.user_id || '', active: w.active === false ? 'no' : 'yes' })} />
                 </header>
                 <div className="worker-meta">
                   <span>{fmtMoney(w.hourly_rate || 0, cur)}/{t('hr')} · {fmtMoney(w.daily_rate, cur)}/{t('day')}</span>
@@ -171,7 +173,7 @@ export default function Team() {
           initial={editing}
           onClose={() => setEditing(null)}
           onSave={(v) => {
-            const row = { ...v, active: v.active !== 'no' };
+            const row = { ...v, active: v.active !== 'no', user_id: v.user_id || null };
             // Picking a position fills in its default hourly rate when none was typed.
             const pos = data.positions.find((p) => p.name === row.role);
             if (pos && !row.hourly_rate) row.hourly_rate = pos.hourly_rate;

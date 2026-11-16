@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useI18n } from '../lib/i18n';
-import { useStore, addRow } from '../lib/store';
+import { useStore, useData, addRow } from '../lib/store';
+import { lastOpened } from '../lib/prefs';
+import { clockIn, clockOut } from '../lib/clock';
+import { startTask, finishTask } from './TaskJournal';
 import { ACCENTS, WALLPAPERS } from '../lib/apps';
 import { Icon, IconButton, Glass, Ring, EntityForm } from '../components/ui';
 import { useMetrics } from './Dashboard';
 import { nav } from '../lib/nav';
 import Notifications from '../components/Notifications';
-import { todayISO, addDays, fmtDate, fmtMoney, sum, taskBudget } from '../lib/utils';
+import { todayISO, addDays, fmtDate, fmtTime, fmtMoney, fmtHours, hoursBetween, sum, taskBudget, locale } from '../lib/utils';
 
 export function AppIcon({ icon, color, label, onClick, soon, badge, accent }) {
   const { t } = useI18n();
@@ -29,7 +32,7 @@ function Clock() {
     const id = setInterval(() => setNow(new Date()), 15000);
     return () => clearInterval(id);
   }, []);
-  const loc = lang === 'he' ? 'he-IL' : 'en-GB';
+  const loc = locale(lang);
   return (
     <Glass className="widget clock">
       <b>{now.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' })}</b>
@@ -60,6 +63,86 @@ function PortfolioWidget({ projects }) {
           </button>
         );
       })}
+    </Glass>
+  );
+}
+
+// Numbers shown on the app icons of a project: things waiting for attention.
+function useBadges(user, project) {
+  const data = useData();
+  if (!project) return {};
+  const today = todayISO();
+  const lead = user.role !== 'worker';
+  const me = data.workers.find((w) => w.user_id === user.id);
+  const mine = (task) => lead || (!!me && (task?.workers || []).includes(me.name));
+  const seen = lastOpened(user.id, project.id, 'tasklog');
+  return {
+    schedule: data.tasks.filter((x) => mine(x) && (x.status === 'delayed' || (x.status !== 'done' && x.end_date < today))).length,
+    issues: data.issues.filter((x) => x.status !== 'done' && x.due_date && x.due_date < today).length,
+    safety: data.safety.filter((x) => x.status === 'open').length,
+    materials: data.materials.filter((x) => Number(x.qty) < Number(x.min_qty)).length,
+    todo: data.todos.filter((x) => x.user_id === user.id && !x.done && x.due_date && x.due_date <= today).length,
+    tasklog: data.messages.filter(
+      (m) => m.thread.startsWith('task:') && m.sender_id !== user.id && !m.deleted && String(m.created_at) > seen && mine(data.tasks.find((x) => 'task:' + x.id === m.thread))
+    ).length,
+  };
+}
+
+// For anyone on the crew: clock in/out and their own tasks, right on the desktop.
+function MyDay({ project, user, me }) {
+  const { t, lang } = useI18n();
+  const data = useData();
+  const today = todayISO();
+  const open = data.shifts.find((s) => s.worker_id === me.id && s.clock_in && !s.clock_out);
+  const hours = sum(data.shifts.filter((s) => s.worker_id === me.id && s.date === today), (s) => hoursBetween(s.clock_in, s.clock_out || new Date()));
+  const tasks = data.tasks
+    .filter((x) => (x.workers || []).includes(me.name) && !x.finished_at && x.status !== 'done')
+    .sort((a, b) => Number(!!b.started_at) - Number(!!a.started_at) || String(a.start_date).localeCompare(String(b.start_date)))
+    .slice(0, 3);
+  return (
+    <Glass className="widget myday">
+      <div className="myday-clock">
+        <div>
+          <h3>{t('my_day')}</h3>
+          <b>{open ? `${t('on_shift_since')} ${fmtTime(open.clock_in, lang)}` : hours > 0 ? t('shift_finished') : t('shift_not_started')}</b>
+          <span>
+            {t('today')}: {fmtHours(hours)} {t('hrs')}
+          </span>
+        </div>
+        {open ? (
+          <button className="punch-btn out small" onClick={() => clockOut(open, user.id)}>
+            <Icon name="stop" size={18} />
+            {t('end_shift')}
+          </button>
+        ) : (
+          <button className="punch-btn small" onClick={() => clockIn(me, user.id)}>
+            <Icon name="play" size={18} />
+            {t('start_shift')}
+          </button>
+        )}
+      </div>
+      <div className="myday-tasks">
+        <h3>{t('my_tasks')}</h3>
+        {tasks.length === 0 && <p className="muted">{t('no_my_tasks')}</p>}
+        {tasks.map((x) => (
+          <div className="myday-task" key={x.id}>
+            <button className="grow" onClick={() => nav(`p/${project.id}/tasklog?q=${encodeURIComponent(x.name)}`)}>
+              {x.name}
+            </button>
+            {x.started_at ? (
+              <button className="btn small" onClick={() => finishTask(x, user)}>
+                <Icon name="check" size={13} />
+                {t('finish_task')}
+              </button>
+            ) : (
+              <button className="btn small" onClick={() => startTask(x, user)}>
+                <Icon name="play" size={13} />
+                {t('start_task')}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
     </Glass>
   );
 }
@@ -109,6 +192,21 @@ function ProjectWidgets({ project }) {
 export default function Desktop({ user, project, projects, apps, controls, onLogout }) {
   const { t } = useI18n();
   const [creating, setCreating] = useState(false);
+  const store = useStore().data;
+  const scoped = useData();
+  const badges = useBadges(user, project);
+  const me = project ? scoped.workers.find((w) => w.user_id === user.id) : null;
+  // On the home desktop each project icon shows how many things need attention there.
+  const projectBadge = (p) => {
+    if (user.role === 'worker') return 0;
+    const d = todayISO();
+    const of = (name) => store[name].filter((r) => r.project_id === p.id);
+    return (
+      of('tasks').filter((x) => x.status === 'delayed' || (x.status !== 'done' && x.end_date < d)).length +
+      of('issues').filter((x) => x.status !== 'done' && x.due_date && x.due_date < d).length +
+      of('safety').filter((x) => x.status === 'open').length
+    );
+  };
   const isManager = user.role === 'manager';
   const today = todayISO();
   const hour = new Date().getHours();
@@ -184,13 +282,14 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
 
       <div className="widgets">
         <Clock />
+        {project && me && <MyDay project={project} user={user} me={me} />}
         {project ? user.role !== 'worker' && <ProjectWidgets project={project} /> : <PortfolioWidget projects={projects} />}
       </div>
 
       <nav className="app-grid" aria-label={t('apps')}>
         {!project &&
           projects.map((p) => (
-            <AppIcon key={p.id} icon="building" color="accent" accent={p.accent} label={p.name} onClick={() => nav(`p/${p.id}`)} />
+            <AppIcon key={p.id} icon="building" color="accent" accent={p.accent} label={p.name} badge={projectBadge(p)} onClick={() => nav(`p/${p.id}`)} />
           ))}
         {!project && isManager && <AppIcon icon="plus" color="glass" label={t('new_project')} onClick={() => setCreating(true)} />}
         {apps.map((a) => (
@@ -200,6 +299,7 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
             color={a.color}
             label={t('nav_' + a.id)}
             soon={a.soon}
+            badge={badges[a.id] || 0}
             onClick={() => nav(project ? `p/${project.id}/${a.id}` : `app/${a.id}`)}
           />
         ))}

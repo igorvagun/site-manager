@@ -19,6 +19,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
 const client = new Anthropic(); // reads ANTHROPIC_API_KEY
+const langName = (l: unknown) => (l === "he" ? "Hebrew" : l === "ru" ? "Russian" : "English");
 
 const RECEIPT_SCHEMA = {
   type: "object",
@@ -60,7 +61,7 @@ async function scanReceipt(body: Record<string, unknown>) {
             type: "text",
             text:
               `This is a photo of a purchase receipt from a construction site. Read it and fill in the fields. ` +
-              `Receipts are usually in Hebrew or English; write "description" in ${body.lang === "he" ? "Hebrew" : "English"}. ` +
+              `Receipts are usually in Hebrew, English or Russian; write "description" in ${langName(body.lang)}. ` +
               `"category" must be exactly one of: ${categories.join(", ")}. ` +
               `Copy numbers exactly as printed — never estimate a total. If a field cannot be read, leave it empty (0 for the total) ` +
               `and, if the image is not a receipt at all, set "readable" to false.`,
@@ -95,7 +96,7 @@ async function summarize(body: Record<string, unknown>) {
     messages: [
       {
         role: "user",
-        content: `Write the briefing in ${body.lang === "he" ? "Hebrew" : "English"}.\n\n<digest>\n${digest}\n</digest>`,
+        content: `Write the briefing in ${langName(body.lang)}.\n\n<digest>\n${digest}\n</digest>`,
       },
     ],
   });

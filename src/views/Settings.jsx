@@ -4,6 +4,8 @@ import { useStore, useUser, replaceAll, loadDemo, notify, COLLECTIONS } from '..
 import { Card, Icon, Segmented, PageHead } from '../components/ui';
 import { downloadFile, todayISO } from '../lib/utils';
 import { readPrefs, writePrefs } from '../components/Notifications';
+import { homeStyle, setHomeStyle } from '../lib/prefs';
+import { WALLPAPERS, ACCENTS } from '../lib/apps';
 
 export default function Settings({ theme, setTheme }) {
   const { t, lang, setLang } = useI18n();
@@ -16,6 +18,12 @@ export default function Settings({ theme, setTheme }) {
     const next = { ...prefs, [k]: !prefs[k] };
     setPrefs(next);
     writePrefs(user.id, next);
+  };
+  const [home, setHome] = useState(() => homeStyle(user.id));
+  const style = (patch) => {
+    const next = { ...home, ...patch };
+    setHome(next);
+    setHomeStyle(user.id, next);
   };
   const notifKinds = user.role === 'worker' ? ['messages'] : ['shifts', 'tasks', 'messages'];
 
@@ -62,7 +70,7 @@ export default function Settings({ theme, setTheme }) {
           <Card title={t('appearance')}>
             <div className="setting">
               <span>{t('language')}</span>
-              <Segmented value={lang} onChange={setLang} options={[{ value: 'he', label: 'עברית' }, { value: 'en', label: 'English' }]} />
+              <Segmented value={lang} onChange={setLang} options={[{ value: 'he', label: 'עברית' }, { value: 'en', label: 'English' }, { value: 'ru', label: 'Русский' }]} />
             </div>
             <div className="setting">
               <span>{t('theme')}</span>
@@ -75,6 +83,24 @@ export default function Settings({ theme, setTheme }) {
                   { value: 'dark', label: t('theme_dark'), icon: 'moon' },
                 ]}
               />
+            </div>
+            <div className="setting col">
+              <span>{t('home_look')}</span>
+              <div className="swatches">
+                {WALLPAPERS.map((w) => (
+                  <button key={w} className={`wall-swatch ${home.wallpaper === w ? 'on' : ''}`} data-wall={w} aria-pressed={home.wallpaper === w} onClick={() => style({ wallpaper: w })}>
+                    <i />
+                    <span>{t('wall_' + w)}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="swatches">
+                {ACCENTS.map((a) => (
+                  <button key={a} className={`accent-swatch ${home.accent === a ? 'on' : ''}`} data-accent={a} aria-pressed={home.accent === a} aria-label={t('accent_' + a)} title={t('accent_' + a)} onClick={() => style({ accent: a })}>
+                    {home.accent === a && <Icon name="check" size={18} />}
+                  </button>
+                ))}
+              </div>
             </div>
           </Card>
         </div>

@@ -16,6 +16,7 @@ import Receipts from '../views/Receipts';
 import Todo from '../views/Todo';
 import Contacts from '../views/Contacts';
 import Insights from '../views/Insights';
+import Accounts from '../views/Accounts';
 
 const ALL = ['manager', 'foreman', 'worker'];
 const LEAD = ['manager', 'foreman'];
@@ -42,6 +43,7 @@ export const PROJECT_APPS = [
 
 // Sub-apps on the account-level home desktop.
 export const HOME_APPS = [
+  { id: 'accounts', icon: 'users', color: 'green', view: Accounts, roles: ['manager'] },
   { id: 'positions', icon: 'idcard', color: 'indigo', view: Positions, roles: ['manager'] },
   { id: 'settings', icon: 'gear', color: 'gray', view: Settings, roles: ALL },
 ];

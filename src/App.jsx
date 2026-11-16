@@ -1,21 +1,24 @@
 import { useEffect, useState } from 'react';
-import { useI18n } from './lib/i18n';
+import { useI18n, LANGS, LANG_NAMES } from './lib/i18n';
 import { initStore, useStore, useUser, setProject, logout } from './lib/store';
 import { PROJECT_APPS, HOME_APPS } from './lib/apps';
 import { Icon, Toasts, IconButton } from './components/ui';
 import Login from './views/Login';
 import Desktop from './views/Desktop';
 import { nav } from './lib/nav';
+import { homeStyle, markOpened } from './lib/prefs';
+import Spotlight from './components/Spotlight';
 
 // #/                    → home desktop
 // #/app/<id>            → account-level app
 // #/p/<projectId>       → project desktop
 // #/p/<projectId>/<id>  → project app
 const readRoute = () => {
-  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
-  if (parts[0] === 'app' && parts[1]) return { app: parts[1] };
-  if (parts[0] === 'p' && parts[1]) return { pid: parts[1], app: parts[2] || null };
-  return {};
+  const [path, query = ''] = location.hash.replace(/^#\/?/, '').split('?');
+  const parts = path.split('/').filter(Boolean);
+  if (parts[0] === 'app' && parts[1]) return { app: parts[1], query };
+  if (parts[0] === 'p' && parts[1]) return { pid: parts[1], app: parts[2] || null, query };
+  return { query };
 };
 
 export function useTheme() {
@@ -52,12 +55,28 @@ export default function App() {
   const user = useUser();
   const [route, setRoute] = useState(readRoute);
   const [theme, setTheme, isDark] = useTheme();
+  const [searching, setSearching] = useState(false);
+  const [prefsTick, setPrefsTick] = useState(0);
 
   useEffect(() => {
     initStore(lang);
     const onHash = () => setRoute(readRoute());
+    const onPrefs = () => setPrefsTick((n) => n + 1);
+    // Cmd/Ctrl+K opens search from anywhere.
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearching((s) => !s);
+      }
+    };
     addEventListener('hashchange', onHash);
-    return () => removeEventListener('hashchange', onHash);
+    addEventListener('site-manager:prefs', onPrefs);
+    addEventListener('keydown', onKey);
+    return () => {
+      removeEventListener('hashchange', onHash);
+      removeEventListener('site-manager:prefs', onPrefs);
+      removeEventListener('keydown', onKey);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -78,9 +97,15 @@ export default function App() {
   // Each project carries its own look; the home desktop uses the default one.
   useEffect(() => {
     const el = document.documentElement;
-    el.dataset.wall = project?.wallpaper || 'aurora';
-    el.dataset.accent = project?.accent || 'blue';
-  }, [project?.wallpaper, project?.accent]);
+    const home = user ? homeStyle(user.id) : { wallpaper: 'aurora', accent: 'blue' };
+    el.dataset.wall = project?.wallpaper || home.wallpaper;
+    el.dataset.accent = project?.accent || home.accent;
+  }, [project?.wallpaper, project?.accent, user?.id, !!project, prefsTick]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Remember when each project app was last opened (drives the "new" badges on its icon).
+  useEffect(() => {
+    if (user && project && app) markOpened(user.id, project.id, app.id);
+  }, [user?.id, project?.id, app?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Unknown or forbidden route → fall back to the nearest valid screen.
   useEffect(() => {
@@ -91,10 +116,17 @@ export default function App() {
 
   const controls = (
     <div className="pill-group">
-      <button className="pill" onClick={() => setLang(lang === 'he' ? 'en' : 'he')} aria-label={t('language')}>
+      {user && <IconButton icon="search" label={`${t('search_everything')} (Ctrl+K)`} onClick={() => setSearching(true)} />}
+      <label className="pill lang-pick">
         <Icon name="globe" size={16} />
-        {lang === 'he' ? 'English' : 'עברית'}
-      </button>
+        <select value={lang} onChange={(e) => setLang(e.target.value)} aria-label={t('language')}>
+          {LANGS.map((l) => (
+            <option key={l} value={l}>
+              {LANG_NAMES[l]}
+            </option>
+          ))}
+        </select>
+      </label>
       <IconButton icon={isDark ? 'sun' : 'moon'} label={t('toggle_theme')} onClick={() => setTheme(isDark ? 'light' : 'dark')} />
     </div>
   );
@@ -127,7 +159,7 @@ export default function App() {
           </div>
           {controls}
         </header>
-        <main className="view" key={route.pid + ':' + app.id}>
+        <main className="view" key={route.pid + ':' + app.id + ':' + route.query}>
           <View go={(id) => nav(`${backTo}/${id}`)} theme={theme} setTheme={setTheme} project={project} />
         </main>
       </div>
@@ -160,6 +192,7 @@ export default function App() {
         <i />
       </div>
       {body}
+      {searching && user && <Spotlight user={user} projects={myProjects} onClose={() => setSearching(false)} />}
       <Toasts />
     </>
   );

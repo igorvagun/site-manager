@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { routeQuery } from '../lib/nav';
 import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, ISSUE_STATUS, PRIORITY } from '../lib/constants';
 import { Glass, Icon, Badge, Segmented, EntityForm, PageHead, SearchBox } from '../components/ui';
@@ -14,7 +15,7 @@ export default function Issues() {
   const o = useOptions();
   const today = todayISO();
   const [type, setType] = useState('all');
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(routeQuery);
   const [editing, setEditing] = useState(null);
   const [drag, setDrag] = useState(null);
   const [over, setOver] = useState(null);

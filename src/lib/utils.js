@@ -1,3 +1,5 @@
+export const LOCALES = { he: 'he-IL', en: 'en-GB', ru: 'ru-RU' };
+export const locale = (lang) => LOCALES[lang] || 'en-GB';
 export const pad = (n) => String(n).padStart(2, '0');
 export const toISO = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 export const todayISO = () => toISO(new Date());
@@ -43,7 +45,7 @@ export const fmtMoneyFull = (n, currency = '₪') => `${currency}${Math.round(Nu
 
 export function fmtDate(iso, lang = 'he', opts = { day: 'numeric', month: 'short' }) {
   if (!iso) return '—';
-  return new Intl.DateTimeFormat(lang === 'he' ? 'he-IL' : 'en-GB', opts).format(parseISO(iso));
+  return new Intl.DateTimeFormat(locale(lang), opts).format(parseISO(iso));
 }
 
 export const sum = (arr, fn = (x) => x) => arr.reduce((s, x) => s + (Number(fn(x)) || 0), 0);
@@ -103,7 +105,7 @@ export function resizeImage(file, max = 900, quality = 0.72) {
 }
 
 export const fmtTime = (ts, lang = 'he') =>
-  ts ? new Date(ts).toLocaleTimeString(lang === 'he' ? 'he-IL' : 'en-GB', { hour: '2-digit', minute: '2-digit' }) : '—';
+  ts ? new Date(ts).toLocaleTimeString(locale(lang), { hour: '2-digit', minute: '2-digit' }) : '—';
 export const fmtDateTime = (ts, lang = 'he') =>
   ts ? `${fmtDate(toISO(new Date(ts)), lang)} ${fmtTime(ts, lang)}` : '—';
 export const fmtHours = (h) => (Math.round((Number(h) || 0) * 10) / 10).toLocaleString('en-US');

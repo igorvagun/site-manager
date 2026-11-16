@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useI18n } from '../lib/i18n';
+import { routeQuery } from '../lib/nav';
 import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { deleteFile } from '../lib/files';
 import { Glass, Icon, IconButton, Badge, EntityForm, Empty, PageHead, SearchBox, Segmented } from '../components/ui';
@@ -13,7 +14,7 @@ const waNumber = (p) => digits(p).replace(/^\+/, '').replace(/^0/, '972');
 export default function Contacts() {
   const { t } = useI18n();
   const data = useData();
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(routeQuery);
   const [kind, setKind] = useState('all');
   const [editing, setEditing] = useState(null);
   const [chat, setChat] = useState(null);
