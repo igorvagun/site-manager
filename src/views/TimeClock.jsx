@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useI18n } from '../lib/i18n';
 import { useData, useUser, updateRow, removeRow, notify } from '../lib/store';
 import { clockIn, clockOut, syncAttendance } from '../lib/clock';
-import { Glass, Icon, IconButton, Badge, EntityForm, Empty, PageHead, Stat } from '../components/ui';
-import { todayISO, addDays, parseISO, fmtDate, fmtTime, fmtMoney, fmtHours, hoursBetween, hourlyRate, sum, exportCSV, pad } from '../lib/utils';
+import { Glass, Icon, IconButton, Badge, EntityForm, Empty, PageHead, Stat, Segmented } from '../components/ui';
+import { todayISO, addDays, parseISO, fmtDate, fmtTime, fmtMoney, fmtMoneyFull, fmtHours, hoursBetween, hourlyRate, sum, exportCSV, pad } from '../lib/utils';
 
 const toLocalInput = (ts) => {
   if (!ts) return '';
@@ -22,6 +22,8 @@ export default function TimeClock() {
   const [now, setNow] = useState(() => new Date());
   const [weekEnd, setWeekEnd] = useState(today);
   const [editing, setEditing] = useState(null);
+  const [mode, setMode] = useState('week');
+  const [month, setMonth] = useState(today.slice(0, 7));
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 20000);
     return () => clearInterval(id);
@@ -35,6 +37,24 @@ export default function TimeClock() {
   const weekHours = (w) => sum(days, (d) => sum(shiftsOf(w.id, d), hoursOf));
   const onNow = workers.filter((w) => openOf(w.id));
   const todayHours = sum(workers, (w) => sum(shiftsOf(w.id, today), hoursOf));
+
+  // Month summary for payroll. Overtime is an estimate: hours above 9 in a day, first 2 at 125%, the rest at 150%.
+  const shiftMonth = (delta) => {
+    const [y, m] = month.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    setMonth(`${d.getFullYear()}-${pad(d.getMonth() + 1)}`);
+  };
+  const payroll = workers.map((w) => {
+    const byDay = {};
+    data.shifts.filter((s) => s.worker_id === w.id && s.date.startsWith(month)).forEach((s) => (byDay[s.date] = (byDay[s.date] || 0) + hoursOf(s)));
+    const dayHours = Object.values(byDay);
+    const regular = sum(dayHours, (h) => Math.min(h, 9));
+    const ot125 = sum(dayHours, (h) => Math.min(Math.max(h - 9, 0), 2));
+    const ot150 = sum(dayHours, (h) => Math.max(h - 11, 0));
+    const rate = hourlyRate(w);
+    return { w, days: dayHours.length, hours: sum(dayHours), regular, overtime: ot125 + ot150, rate, pay: regular * rate + ot125 * rate * 1.25 + ot150 * rate * 1.5 };
+  });
+  const monthLabel = fmtDate(month + '-01', lang, { month: 'long', year: 'numeric' });
 
   const myOpen = me && openOf(me.id);
   const myToday = me ? sum(shiftsOf(me.id, today), hoursOf) : 0;
@@ -142,6 +162,36 @@ export default function TimeClock() {
           </Glass>
 
           <Glass className="toolbar">
+            <Segmented value={mode} onChange={setMode} options={[{ value: 'week', label: t('view_week') }, { value: 'month', label: t('view_payroll') }]} />
+            {mode === 'month' && (
+              <>
+                <div className="date-nav">
+                  <IconButton icon="up" tone="rot-start" label={t('prev_month')} onClick={() => shiftMonth(-1)} />
+                  <b>{monthLabel}</b>
+                  <IconButton icon="up" tone="rot-end" label={t('next_month')} onClick={() => shiftMonth(1)} disabled={month >= today.slice(0, 7)} />
+                </div>
+                <span className="spacer" />
+                <button
+                  className="btn"
+                  onClick={() =>
+                    exportCSV(`payroll-${month}.csv`, payroll, [
+                      { label: t('full_name'), get: (r) => r.w.name },
+                      { label: t('position'), get: (r) => r.w.role },
+                      { label: t('id_number'), get: (r) => r.w.id_number },
+                      { label: t('days_worked'), get: (r) => r.days },
+                      { label: t('regular_hours'), get: (r) => fmtHours(r.regular) },
+                      { label: t('overtime_hours'), get: (r) => fmtHours(r.overtime) },
+                      { label: t('hourly_rate'), get: (r) => Math.round(r.rate) },
+                      { label: t('pay_estimate'), get: (r) => Math.round(r.pay) },
+                    ])
+                  }
+                >
+                  <Icon name="download" size={16} />
+                  CSV
+                </button>
+              </>
+            )}
+            {mode === 'week' && (
             <div className="date-nav">
               <IconButton icon="up" tone="rot-start" label={t('prev_week')} onClick={() => setWeekEnd(addDays(weekEnd, -7))} />
               <b>
@@ -150,8 +200,52 @@ export default function TimeClock() {
               <IconButton icon="up" tone="rot-end" label={t('next_week')} onClick={() => setWeekEnd(addDays(weekEnd, 7))} disabled={weekEnd >= today} />
               {weekEnd !== today && <button className="btn ghost" onClick={() => setWeekEnd(today)}>{t('this_week')}</button>}
             </div>
+            )}
           </Glass>
 
+          {mode === 'month' && (
+            <Glass className="table-wrap">
+              <table className="timesheet">
+                <thead>
+                  <tr>
+                    <th>{t('full_name')}</th>
+                    <th className="num">{t('days_worked')}</th>
+                    <th className="num">{t('regular_hours')}</th>
+                    <th className="num">{t('overtime_hours')}</th>
+                    <th className="num">{t('hourly_rate')}</th>
+                    <th className="num">{t('pay_estimate')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payroll.map((r) => (
+                    <tr key={r.w.id}>
+                      <td>
+                        <b>{r.w.name}</b>
+                        <br />
+                        <small>{r.w.role}</small>
+                      </td>
+                      <td className="num">{r.days}</td>
+                      <td className="num">{fmtHours(r.regular)}</td>
+                      <td className="num">{r.overtime > 0 ? fmtHours(r.overtime) : '—'}</td>
+                      <td className="num">{fmtMoney(r.rate, cur)}</td>
+                      <td className="num">{fmtMoneyFull(r.pay, cur)}</td>
+                    </tr>
+                  ))}
+                  <tr className="total-row">
+                    <td><b>{t('total')}</b></td>
+                    <td className="num">{sum(payroll, (r) => r.days)}</td>
+                    <td className="num">{fmtHours(sum(payroll, (r) => r.regular))}</td>
+                    <td className="num">{fmtHours(sum(payroll, (r) => r.overtime))}</td>
+                    <td />
+                    <td className="num">{fmtMoneyFull(sum(payroll, (r) => r.pay), cur)}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p className="table-note">{t('payroll_note')}</p>
+            </Glass>
+          )}
+
+          {mode === 'week' && (
           <Glass className="table-wrap">
             <table className="timesheet">
               <thead>
@@ -202,6 +296,7 @@ export default function TimeClock() {
               </tbody>
             </table>
           </Glass>
+          )}
         </>
       )}
 

@@ -97,7 +97,12 @@ export default function Insights() {
 
   return (
     <>
-      <PageHead title={t('nav_insights')} subtitle={t('insights_sub')} />
+      <PageHead title={t('nav_insights')} subtitle={t('insights_sub')}>
+        <button className="btn" onClick={() => window.print()}>
+          <Icon name="printer" size={16} />
+          {t('print')}
+        </button>
+      </PageHead>
       <Glass className="toolbar">
         <Segmented
           value={days}

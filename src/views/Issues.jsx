@@ -5,6 +5,7 @@ import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, ISSUE_STATUS, PRIORITY } from '../lib/constants';
 import { Glass, Icon, Badge, Segmented, EntityForm, PageHead, SearchBox } from '../components/ui';
 import { todayISO, addDays, fmtDate, exportCSV } from '../lib/utils';
+import { DrawingViewer } from './Drawings';
 
 const ORDER = Object.keys(ISSUE_STATUS);
 const RANK = { high: 0, medium: 1, low: 2 };
@@ -19,6 +20,7 @@ export default function Issues() {
   const [editing, setEditing] = useState(null);
   const [drag, setDrag] = useState(null);
   const [over, setOver] = useState(null);
+  const [pinView, setPinView] = useState(null);
 
   const list = data.issues
     .filter((i) => (type === 'all' || i.type === type) && (!q || `${i.title} ${i.description} ${i.assignee}`.toLowerCase().includes(q.toLowerCase())))
@@ -119,6 +121,11 @@ export default function Issues() {
                     {i.photo && <img src={i.photo} alt="" />}
                     <footer>
                       <span className="tag">{o.floorLabel(i.floor)}</span>
+                      {i.drawing_id && data.drawings.some((d) => d.id === i.drawing_id) && (
+                        <button className="tag pin-tag" onClick={() => setPinView(i)} title={t('show_on_drawing')}>
+                          <Icon name="pin" size={12} /> {data.drawings.find((d) => d.id === i.drawing_id).number || t('drawing')}
+                        </button>
+                      )}
                       {i.assignee && <span className="avatar-chip"><i>{i.assignee.slice(0, 1)}</i>{i.assignee}</span>}
                       {i.due_date && (
                         <span className={overdue ? 'warn-text' : ''}>
@@ -148,6 +155,7 @@ export default function Issues() {
         })}
       </div>
 
+      {pinView && <DrawingViewer drawing={data.drawings.find((d) => d.id === pinView.drawing_id)} focusIssue={pinView.id} onClose={() => setPinView(null)} />}
       {editing && (
         <EntityForm
           title={editing.id ? t('edit_issue') : t('new_issue')}

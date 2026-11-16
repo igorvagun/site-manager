@@ -3778,3 +3778,109 @@ kbd {
     justify-content: center;
   }
 }
+
+/* ───────── Drawing pins, getting started, payroll ───────── */
+.pin-stage {
+  position: relative;
+  line-height: 0;
+}
+.pin-stage img {
+  width: 100%;
+  display: block;
+}
+.pin-stage.pinning {
+  cursor: crosshair;
+}
+.map-pin {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  margin: -28px 0 0 -14px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: grid;
+  place-items: center;
+  background: var(--c);
+  border: 2px solid #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  color: #1a1d2b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  transition: transform 0.2s var(--ease);
+}
+.map-pin span {
+  transform: rotate(45deg);
+}
+.map-pin:hover,
+.map-pin.on {
+  transform: rotate(-45deg) scale(1.25);
+  z-index: 2;
+}
+.pin-card {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--fill);
+  border: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pin-card img {
+  max-width: 220px;
+  border-radius: 10px;
+}
+.pin-card .btn-row {
+  margin-top: 4px;
+}
+.pin-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--orange);
+}
+button.pin-tag:hover {
+  background: var(--fill-2);
+}
+.widget.getting-started {
+  grid-column: 1 / -1;
+}
+.gs-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.gs-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 8px;
+  padding-inline: 8px 14px;
+  border-radius: 99px;
+  background: var(--fill);
+  border: 1px solid var(--hairline);
+  font-weight: 600;
+  color: var(--text);
+}
+.gs-step:hover {
+  background: var(--fill-2);
+}
+.gs-step .check {
+  width: 22px;
+  height: 22px;
+}
+.gs-step.done {
+  color: var(--text3);
+  text-decoration: line-through;
+}
+.total-row td {
+  border-top: 1.5px solid var(--fill-2);
+  font-weight: 700;
+}
+.table-note {
+  padding: 10px 12px 8px;
+  font-size: 12.5px;
+  color: var(--text3);
+}

@@ -1,3 +1,4 @@
+import { SEED_RU } from './seed-ru';
 import { todayISO, addDays, parseISO, uid } from './utils';
 
 // Demo data, generated relative to today so the dashboard always looks alive.
@@ -10,7 +11,7 @@ const P1 = '00000000-0000-4000-8000-0000000000a1';
 const P2 = '00000000-0000-4000-8000-0000000000a2';
 
 export function buildSeed(lang = 'he') {
-  const L = (he, en) => (lang === 'he' ? he : en);
+  const L = (he, en) => (lang === 'he' ? he : lang === 'ru' ? SEED_RU[en] || en : en);
   const today = todayISO();
   const d = (n) => addDays(today, n);
   const now = new Date().toISOString();

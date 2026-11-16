@@ -590,6 +590,28 @@ Object.assign(D, {
   offline_ready: ['האפליקציה זמינה גם ללא חיבור', 'The app also works offline'],
 });
 
+Object.assign(D, {
+  add_pin: ['הוסף סימון', 'Add pin'],
+  pin_tap_drawing: ['לחצו על השרטוט…', 'Tap the drawing…'],
+  new_pin_issue: ['ליקוי חדש על השרטוט', 'New issue on the drawing'],
+  show_on_drawing: ['הצג על השרטוט', 'Show on the drawing'],
+  gs_title: ['צעדים ראשונים בפרויקט', 'Getting this project started'],
+  gs_team: ['הוסיפו עובדים', 'Add workers'],
+  gs_tasks: ['צרו משימה ראשונה', 'Create the first task'],
+  gs_drawings: ['העלו שרטוטים', 'Upload drawings'],
+  gs_budget: ['הגדירו תקציב', 'Set the budget'],
+  gs_contacts: ['הוסיפו אנשי קשר', 'Add contacts'],
+  view_week: ['שבוע', 'Week'],
+  view_payroll: ['שכר חודשי', 'Monthly payroll'],
+  prev_month: ['חודש קודם', 'Previous month'],
+  next_month: ['חודש הבא', 'Next month'],
+  days_worked: ['ימי עבודה', 'Days worked'],
+  regular_hours: ['שעות רגילות', 'Regular hours'],
+  overtime_hours: ['שעות נוספות', 'Overtime'],
+  pay_estimate: ['שכר משוער', 'Estimated pay'],
+  payroll_note: ['הערכה בלבד: שעות מעל 9 ביום נחשבות נוספות — 2 הראשונות ב-125%, היתר ב-150%. אינו מחליף חישוב שכר רשמי.', 'Estimate only: hours above 9 in a day count as overtime — the first 2 at 125%, the rest at 150%. Not a substitute for official payroll.'],
+});
+
 export const LANGS = ['he', 'en', 'ru'];
 export const LANG_NAMES = { he: 'עברית', en: 'English', ru: 'Русский' };
 const Ctx = createContext(null);

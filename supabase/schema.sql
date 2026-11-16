@@ -171,6 +171,11 @@ ALTER TABLE tasks ADD COLUMN IF NOT EXISTS drawing_id UUID;
 ALTER TABLE tasks ADD COLUMN IF NOT EXISTS media JSONB DEFAULT '[]'::JSONB; -- voice / video notes
 ALTER TABLE expenses ADD COLUMN IF NOT EXISTS receipt_id TEXT;             -- file id of the receipt photo
 
+-- An issue can be pinned to a spot on a drawing (position in % of the image).
+ALTER TABLE issues ADD COLUMN IF NOT EXISTS drawing_id UUID;
+ALTER TABLE issues ADD COLUMN IF NOT EXISTS pin_x NUMERIC;
+ALTER TABLE issues ADD COLUMN IF NOT EXISTS pin_y NUMERIC;
+
 CREATE TABLE IF NOT EXISTS drawings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,

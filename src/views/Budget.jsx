@@ -21,6 +21,7 @@ export default function Budget() {
     .filter((e) => (!cat || e.category === cat) && (!q || `${e.description} ${e.vendor}`.toLowerCase().includes(q.toLowerCase())));
   const unpaid = sum(data.expenses.filter((e) => e.status === 'pending'), (e) => e.amount);
   const remaining = m.budget - m.spent;
+  // A brand-new project has no budget lines yet; clicking a category creates one.
   const rows = CATEGORIES.map((c) => {
     const line = data.budget_lines.find((b) => b.category === c);
     return { c, line, planned: line?.planned || 0, actual: sum(data.expenses.filter((e) => e.category === c), (e) => e.amount) };

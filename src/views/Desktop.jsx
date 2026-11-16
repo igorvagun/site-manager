@@ -147,6 +147,37 @@ function MyDay({ project, user, me }) {
   );
 }
 
+// A new project starts empty; this walks the manager through filling it.
+function GettingStarted({ project }) {
+  const { t } = useI18n();
+  const data = useData();
+  const steps = [
+    { app: 'team', icon: 'users', label: t('gs_team'), done: data.workers.length > 0 },
+    { app: 'tasklog', icon: 'chat', label: t('gs_tasks'), done: data.tasks.length > 0 },
+    { app: 'drawings', icon: 'layers', label: t('gs_drawings'), done: data.drawings.length > 0 },
+    { app: 'budget', icon: 'wallet', label: t('gs_budget'), done: data.budget_lines.length > 0 },
+    { app: 'contacts', icon: 'phone', label: t('gs_contacts'), done: data.contacts.length > 0 },
+  ];
+  const left = steps.filter((s) => !s.done).length;
+  if (data.workers.length > 0 && data.tasks.length > 0) return null;
+  return (
+    <Glass className="widget getting-started">
+      <h3>
+        {t('gs_title')} · {steps.length - left}/{steps.length}
+      </h3>
+      <div className="gs-steps">
+        {steps.map((s) => (
+          <button key={s.app} className={`gs-step ${s.done ? 'done' : ''}`} onClick={() => nav(`p/${project.id}/${s.app}`)}>
+            <span className={`check ${s.done ? 'on' : ''}`}>{s.done && <Icon name="check" size={14} />}</span>
+            <Icon name={s.icon} size={16} />
+            <span>{s.label}</span>
+          </button>
+        ))}
+      </div>
+    </Glass>
+  );
+}
+
 // Project desktop: this project's vital signs.
 function ProjectWidgets({ project }) {
   const { t, lang } = useI18n();
@@ -281,8 +312,9 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
       </div>
 
       <div className="widgets">
-        <Clock />
+        {!(project && user.role === 'worker') && <Clock />}
         {project && me && <MyDay project={project} user={user} me={me} />}
+        {project && isManager && <GettingStarted project={project} />}
         {project ? user.role !== 'worker' && <ProjectWidgets project={project} /> : <PortfolioWidget projects={projects} />}
       </div>
 
