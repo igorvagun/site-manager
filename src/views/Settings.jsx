@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useI18n } from '../lib/i18n';
-import { useStore, useUser, replaceAll, loadDemo, notify, COLLECTIONS } from '../lib/store';
-import { Card, Icon, Segmented, PageHead } from '../components/ui';
+import { useStore, useUser, replaceAll, loadDemo, notify, removeRow, COLLECTIONS } from '../lib/store';
+import { Card, Icon, IconButton, Segmented, PageHead } from '../components/ui';
 import { downloadFile, todayISO } from '../lib/utils';
 import { readPrefs, writePrefs } from '../components/Notifications';
 import { homeStyle, setHomeStyle } from '../lib/prefs';
@@ -105,6 +105,27 @@ export default function Settings({ theme, setTheme }) {
           </Card>
         </div>
 
+        <div className="stack">
+        {isManager && (
+          <Card title={t('my_templates')}>
+            {(data.templates || []).length === 0 ? (
+              <p className="muted">{t('no_templates')}</p>
+            ) : (
+              <ul className="list">
+                {data.templates.map((x) => (
+                  <li key={x.id} className="tpl-row">
+                    <span className="grow">
+                      <b>{x.name}</b>
+                      <small>{x.steps.map((s) => s.name).join(' → ')}</small>
+                    </span>
+                    <span className="seg-count">{x.steps.length}</span>
+                    <IconButton icon="trash" size={16} label={`${t('delete')}: ${x.name}`} onClick={() => removeRow('templates', x.id)} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        )}
         <Card title={t('data')}>
           <div className="setting">
             <span>
@@ -139,6 +160,7 @@ export default function Settings({ theme, setTheme }) {
             </div>
           )}
         </Card>
+        </div>
       </div>
     </>
   );

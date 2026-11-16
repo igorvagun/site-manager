@@ -9,7 +9,8 @@ import { fmtDate, fmtMoney, sum, exportCSV, setWorkCalendar } from '../lib/utils
 export default function Overview() {
   const { t, lang } = useI18n();
   const { data } = useStore();
-  const rows = data.projects.map((p) => {
+  // Archived projects are finished work; they stay out of the comparison.
+  const rows = data.projects.filter((p) => !p.archived).map((p) => {
     const scoped = { project: [p] };
     SCOPED.forEach((c) => (scoped[c] = data[c].filter((r) => r.project_id === p.id)));
     setWorkCalendar(p); // each project is measured with its own working days

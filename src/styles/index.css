@@ -4278,3 +4278,140 @@ input[type='range']:disabled {
 .time-range input {
   padding: 6px 10px;
 }
+
+/* ───────── Week plan, digest, archive ───────── */
+.c-aqua { --i1: #a8ecf0; --i2: #1f9fb0; }
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.week-day {
+  padding: 10px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 150px;
+  min-width: 0;
+}
+.week-day.today {
+  outline: 2px solid var(--blue-f);
+  outline-offset: -2px;
+}
+.week-day.rest {
+  opacity: 0.6;
+}
+.week-day header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.week-day header b {
+  color: var(--text);
+  text-transform: capitalize;
+}
+.week-task {
+  display: flex;
+  flex-direction: column;
+  padding: 5px 8px;
+  border-radius: 10px;
+  border-inline-start: 3px solid var(--c);
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+  font-size: 12px;
+  min-width: 0;
+}
+.week-task b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.week-task span {
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.week-event {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  min-width: 0;
+}
+.week-event .dot-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+.week-event span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crew-plan td {
+  vertical-align: top;
+  font-size: 12.5px;
+}
+.plan-chip {
+  display: block;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.crew-plan .free {
+  color: var(--green);
+  font-weight: 600;
+}
+.since-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.since-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 6px;
+  padding-inline: 6px 14px;
+  border-radius: 99px;
+  background: var(--fill);
+  border: 1px solid var(--hairline);
+  color: var(--text2);
+}
+.since-item:hover {
+  background: var(--fill-2);
+}
+.since-item b {
+  color: var(--text);
+  font-size: 16px;
+}
+.archive-toggle {
+  align-self: center;
+}
+.tpl-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tpl-row .grow {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tpl-row small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 1000px) {
+  .week {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

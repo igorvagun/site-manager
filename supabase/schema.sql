@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS projects (
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS rest_days JSONB DEFAULT '[6]'::JSONB;
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS shift_start TEXT DEFAULT '07:00';
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS shift_end TEXT DEFAULT '16:00';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE;
 
 -- App profiles. `email` must match the Supabase Auth account; `role` decides what the person sees.
 CREATE TABLE IF NOT EXISTS users (

@@ -728,6 +728,37 @@ Object.assign(D, {
   import_empty: ['בקובץ אין שורות נתונים', 'The file has no data rows'],
 });
 
+Object.assign(D, {
+  nav_weekplan: ['תכנון שבועי', 'Week plan'],
+  weekplan_sub: ['השבוע הקרוב: מה מתבצע בכל יום, מה מגיע ומי משובץ לאן', 'The week ahead: what runs each day, what arrives and who is on what'],
+  wp_clashes: ['כפילויות שיבוץ', 'Double bookings'],
+  wp_clashes_sub: ['עובד בשתי משימות באותו יום', 'a worker on two tasks the same day'],
+  wp_unstaffed: ['משימות ללא צוות', 'Tasks without a crew'],
+  wp_unstaffed_sub: ['מתוכננות לשבוע זה', 'scheduled this week'],
+  wp_free: ['פנויים', 'Unassigned'],
+  wp_rest: ['יום מנוחה', 'Rest day'],
+  wp_crew: ['שיבוץ צוות', 'Crew plan'],
+  wp_free_cell: ['פנוי', 'free'],
+  wp_clash: ['כפילות', 'clash'],
+  since_yesterday: ['מאז אתמול', 'Since yesterday'],
+  since_nothing: ['אין שינויים מאז אתמול', 'Nothing has changed since yesterday'],
+  since_started: ['משימות התחילו', 'tasks started'],
+  since_finished: ['משימות הסתיימו', 'tasks finished'],
+  since_issues: ['ליקויים חדשים', 'new issues'],
+  since_safety: ['דיווחי בטיחות', 'safety reports'],
+  since_messages: ['הודעות', 'messages'],
+  since_expenses: ['הוצאות', 'spent'],
+  since_hours: ['שעות אתמול', 'hours yesterday'],
+  archive_project: ['העבר לארכיון', 'Archive project'],
+  restore_project: ['החזר מהארכיון', 'Restore from archive'],
+  project_archived: ['הפרויקט הועבר לארכיון', 'Project archived'],
+  project_restored: ['הפרויקט הוחזר', 'Project restored'],
+  show_archive: ['ארכיון', 'Archive'],
+  hide_archive: ['הסתר ארכיון', 'Hide archive'],
+  my_templates: ['התבניות שלי', 'My task templates'],
+  no_templates: ['עדיין לא נשמרו תבניות. שמרו אחת מלוח הזמנים של פרויקט.', 'No templates saved yet. Save one from a project’s schedule.'],
+});
+
 // A key's label in every language — used to recognise column headers in imported files.
 export const labelsOf = (key) => [...(D[key] || []), RU[key]].filter(Boolean);
 export const LANGS = ['he', 'en', 'ru'];

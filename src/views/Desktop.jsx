@@ -226,6 +226,9 @@ function ProjectWidgets({ project }) {
 export default function Desktop({ user, project, projects, apps, controls, onLogout }) {
   const { t } = useI18n();
   const [creating, setCreating] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
+  const live = projects.filter((p) => !p.archived);
+  const archived = projects.filter((p) => p.archived);
   const store = useStore().data;
   const scoped = useData();
   const badges = useBadges(user, project);
@@ -308,7 +311,7 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
               {greeting}, {user.name.split(' ')[0]}
             </h1>
             <p>
-              {t('role_' + user.role)} · {projects.length} {t('projects_word')}
+              {t('role_' + user.role)} · {live.length} {t('projects_word')}
             </p>
           </>
         )}
@@ -318,13 +321,13 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
         {!(project && user.role === 'worker') && <Clock />}
         {project && me && <MyDay project={project} user={user} me={me} />}
         {project && isManager && <GettingStarted project={project} />}
-        {project ? user.role !== 'worker' && <ProjectWidgets project={project} /> : <PortfolioWidget projects={projects} />}
+        {project ? user.role !== 'worker' && <ProjectWidgets project={project} /> : <PortfolioWidget projects={live} />}
       </div>
 
       <nav className="app-grid" aria-label={t('apps')}>
         {!project &&
-          projects.map((p) => (
-            <AppIcon key={p.id} icon="building" color="accent" accent={p.accent} label={p.name} badge={projectBadge(p)} onClick={() => nav(`p/${p.id}`)} />
+          (showArchive ? projects : live).map((p) => (
+            <AppIcon key={p.id} icon={p.archived ? 'archive' : 'building'} color="accent" accent={p.accent} label={p.name} badge={projectBadge(p)} onClick={() => nav(`p/${p.id}`)} />
           ))}
         {!project && isManager && <AppIcon icon="plus" color="glass" label={t('new_project')} onClick={() => setCreating(true)} />}
         {apps.map((a) => (
@@ -340,6 +343,12 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
         ))}
       </nav>
 
+      {!project && archived.length > 0 && (
+        <button className="btn ghost archive-toggle" onClick={() => setShowArchive(!showArchive)}>
+          <Icon name="archive" size={15} />
+          {showArchive ? t('hide_archive') : `${t('show_archive')} · ${archived.length}`}
+        </button>
+      )}
       {creating && (
         <EntityForm
           title={t('new_project')}

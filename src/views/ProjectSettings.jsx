@@ -114,6 +114,18 @@ export default function ProjectSettings({ project }) {
                 <Icon name="trash" size={16} />
                 {t('delete_project')}
               </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  style({ archived: !project.archived });
+                  notify(project.archived ? 'project_restored' : 'project_archived');
+                  if (!project.archived) nav('');
+                }}
+              >
+                <Icon name="archive" size={16} />
+                {t(project.archived ? 'restore_project' : 'archive_project')}
+              </button>
               <span className="spacer" />
               <button className="btn primary" type="submit">{t('save')}</button>
             </div>

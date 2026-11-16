@@ -13,9 +13,10 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 
 | App | What it does |
 | --- | --- |
-| Dashboard | Progress vs plan, handover forecast at the current pace, budget, crew, alerts, spend chart, next 7 days |
+| Dashboard | What changed since yesterday, progress vs plan, handover forecast at the current pace, budget, crew, alerts, spend chart, next 7 days |
 | Team | Workers with full details, daily attendance, chat with each worker |
 | Schedule | Task list and Gantt, priorities, dependencies with one-tap shifting, built-in and your own task templates |
+| Week plan | The next seven days by day, with the crew plan and double bookings flagged; printable |
 | Calendar | Every dated item of the project on a month grid |
 | Daily Log | Site diary pre-drafted from the day's tasks; photos; printable daily report |
 | Budget | Budget vs actual by category, expenses, change orders, forecast |
@@ -40,6 +41,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 - **My day** on the project desktop: clock in/out and your own tasks.
 - **Chats** — per task, per worker, per contact — with text, voice notes, photos, video, files, replies and reactions.
 - **Undo** for a few seconds after any delete. Lists export to CSV; workers and tasks can be imported from CSV.
+- **Archive** a finished project from its settings; it leaves the home desktop and the comparison but keeps its data.
 - **Working calendar** per project (rest days, standard shift) in Project settings; all date and cost maths follows it.
 
 ### Roles

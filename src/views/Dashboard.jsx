@@ -222,6 +222,20 @@ export default function Dashboard({ go }) {
     })),
   ];
 
+  // What changed since the start of yesterday, gathered from every app.
+  const y0 = new Date(addDays(today, -1) + 'T00:00:00');
+  const after = (ts) => ts && new Date(ts) >= y0;
+  const yShifts = data.shifts.filter((s) => s.date === addDays(today, -1) && s.clock_out);
+  const since = [
+    { key: 'since_started', icon: 'play', tone: 'blue', to: 'tasklog', value: data.tasks.filter((x) => after(x.started_at)).length },
+    { key: 'since_finished', icon: 'check', tone: 'green', to: 'tasklog', value: data.tasks.filter((x) => after(x.finished_at)).length },
+    { key: 'since_issues', icon: 'alert', tone: 'orange', to: 'issues', value: data.issues.filter((x) => after(x.created_at)).length },
+    { key: 'since_safety', icon: 'shield', tone: 'red', to: 'safety', value: data.safety.filter((x) => x.type !== 'toolbox' && x.type !== 'inspection' && x.date >= addDays(today, -1)).length },
+    { key: 'since_messages', icon: 'chat', tone: 'purple', to: 'tasklog', value: data.messages.filter((x) => !x.deleted && after(x.created_at)).length },
+    { key: 'since_expenses', icon: 'wallet', tone: 'purple', to: 'budget', value: fmtMoney(sum(data.expenses.filter((x) => x.date >= addDays(today, -1)), (x) => x.amount), cur), zero: !data.expenses.some((x) => x.date >= addDays(today, -1)) },
+    { key: 'since_hours', icon: 'clock', tone: 'blue', to: 'timeclock', value: Math.round(sum(yShifts, (s) => (new Date(s.clock_out) - new Date(s.clock_in)) / 3600000)), zero: !yShifts.length },
+  ].filter((s) => (s.zero === undefined ? s.value > 0 : !s.zero));
+
   const week = addDays(today, 7);
   const upcoming = [
     ...data.tasks.filter((x) => x.start_date > today && x.start_date <= week).map((x) => ({ date: x.start_date, icon: 'calendar', text: `${t('starts')}: ${x.name}` })),
@@ -300,6 +314,22 @@ export default function Dashboard({ go }) {
           <Stat icon="shield" tone="green" label={t('days_no_incident')} value={m.safeDays} sub={t('days')} />
         </div>
       </div>
+
+      <Card title={t('since_yesterday')} className="since">
+        {since.length === 0 ? (
+          <p className="muted">{t('since_nothing')}</p>
+        ) : (
+          <div className="since-row">
+            {since.map((s) => (
+              <button key={s.key} className="since-item" onClick={() => go(s.to)}>
+                <span className={`dot-icon tint-${s.tone}`}><Icon name={s.icon} size={15} /></span>
+                <b>{s.value}</b>
+                <span>{t(s.key)}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </Card>
 
       <div className="grid dash-main">
         <Card
