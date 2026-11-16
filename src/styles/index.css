@@ -4415,3 +4415,74 @@ input[type='range']:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ───────── Grouped project desktop ───────── */
+.app-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app-group h2 {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text2);
+  padding-inline: 14px;
+}
+.app-group .app-grid {
+  justify-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 112px));
+  padding: 14px 8px 10px;
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--glass) 55%, transparent);
+  border: 1px solid var(--stroke-2);
+}
+.desktop:has(.app-group) {
+  gap: 20px;
+}
+.app.is-hidden .app-icon {
+  filter: saturate(0.2) opacity(0.45);
+}
+.app.is-hidden .app-label {
+  color: var(--text3);
+}
+.arrange-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+@media (max-width: 860px) {
+  .app-group .app-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-items: center;
+    padding: 12px 4px 8px;
+  }
+}
+
+/* Compact summary tiles on a phone, so the content below is reachable without a long scroll. */
+@media (max-width: 520px) {
+  .stat {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+  }
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+  .stat-value {
+    font-size: 19px;
+  }
+  .stat-label {
+    font-size: 11.5px;
+    line-height: 1.2;
+  }
+  .stats > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}

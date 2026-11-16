@@ -23,3 +23,7 @@ export const setHomeStyle = (uid, style) => write(`site-manager:home-style:${uid
 const openedKey = (uid, pid, app) => `site-manager:opened:${uid}:${pid}:${app}`;
 export const lastOpened = (uid, pid, app) => read(openedKey(uid, pid, app), '');
 export const markOpened = (uid, pid, app) => write(openedKey(uid, pid, app), new Date().toISOString());
+
+// Apps a person chose to hide from their project desktops (still reachable through search).
+export const hiddenApps = (uid) => read(`site-manager:hidden-apps:${uid}`, []);
+export const setHiddenApps = (uid, ids) => write(`site-manager:hidden-apps:${uid}`, ids);

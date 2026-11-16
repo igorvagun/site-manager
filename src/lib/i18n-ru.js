@@ -686,4 +686,13 @@ export const RU = {
   hide_archive: 'Скрыть архив',
   my_templates: 'Мои шаблоны задач',
   no_templates: 'Шаблонов пока нет. Сохраните шаблон из графика работ проекта.',
+  group_work: 'Работы',
+  group_people: 'Люди',
+  group_money: 'Деньги и ресурсы',
+  group_control: 'Контроль',
+  arrange: 'Настроить стол',
+  arrange_hint: 'Нажмите на приложение, чтобы скрыть или показать его',
+  done: 'Готово',
+  hidden: 'Скрыто',
+  hidden_count: 'скрыто',
 };

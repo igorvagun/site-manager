@@ -7,7 +7,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 
 1. **Sign in.** The app recognises the person's role — project manager, foreman or worker — and shows only what that role may use.
 2. **Home desktop.** App icons, like a phone home screen: one icon per project, plus New project, All projects (side-by-side comparison), Accounts, Positions and Settings.
-3. **Project desktop.** Each project has its own wallpaper and accent colour, its own data, and its own set of sub-apps. Icons carry a count of things needing attention.
+3. **Project desktop.** Each project has its own wallpaper and accent colour, its own data, and its own set of sub-apps, grouped into Work, People, Money and resources, and Control. Icons carry a count of things needing attention, and each person can hide the apps they do not use.
 
 ### Project sub-apps
 

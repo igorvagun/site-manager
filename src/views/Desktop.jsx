@@ -1,27 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useI18n } from '../lib/i18n';
 import { useStore, useData, addRow } from '../lib/store';
-import { lastOpened } from '../lib/prefs';
+import { lastOpened, hiddenApps, setHiddenApps } from '../lib/prefs';
 import { clockIn, clockOut } from '../lib/clock';
 import { startTask, finishTask } from './TaskJournal';
 import { equipmentAlerts } from './Equipment';
-import { ACCENTS, WALLPAPERS } from '../lib/apps';
+import { ACCENTS, WALLPAPERS, APP_GROUPS } from '../lib/apps';
 import { Icon, IconButton, Glass, Ring, EntityForm } from '../components/ui';
 import { useMetrics } from './Dashboard';
 import { nav } from '../lib/nav';
 import Notifications from '../components/Notifications';
 import { todayISO, addDays, fmtDate, fmtTime, fmtMoney, fmtHours, hoursBetween, sum, taskBudget, locale, setWorkCalendar } from '../lib/utils';
 
-export function AppIcon({ icon, color, label, onClick, soon, badge, accent }) {
+export function AppIcon({ icon, color, label, onClick, soon, badge, accent, hidden, pressed }) {
   const { t } = useI18n();
   return (
-    <button className={`app ${soon ? 'soon' : ''}`} onClick={onClick} disabled={soon} title={soon ? `${label} — ${t('coming_soon')}` : label}>
+    <button className={`app ${soon ? 'soon' : ''} ${hidden ? 'is-hidden' : ''}`} onClick={onClick} disabled={soon} aria-pressed={pressed} title={soon ? `${label} — ${t('coming_soon')}` : label}>
       <span className={`app-icon c-${color}`} data-accent={accent}>
         <Icon name={icon} size={30} />
         {badge > 0 && <i className="app-badge">{badge}</i>}
       </span>
       <span className="app-label">{label}</span>
       {soon && <span className="app-soon">{t('soon')}</span>}
+      {hidden && <span className="app-soon">{t('hidden')}</span>}
     </button>
   );
 }
@@ -227,6 +228,13 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
   const { t } = useI18n();
   const [creating, setCreating] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
+  const [arranging, setArranging] = useState(false);
+  const [hidden, setHidden] = useState(() => hiddenApps(user.id));
+  const toggleHidden = (id) => {
+    const next = hidden.includes(id) ? hidden.filter((x) => x !== id) : [...hidden, id];
+    setHidden(next);
+    setHiddenApps(user.id, next);
+  };
   const live = projects.filter((p) => !p.archived);
   const archived = projects.filter((p) => p.archived);
   const store = useStore().data;
@@ -324,24 +332,59 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
         {project ? user.role !== 'worker' && <ProjectWidgets project={project} /> : <PortfolioWidget projects={live} />}
       </div>
 
-      <nav className="app-grid" aria-label={t('apps')}>
-        {!project &&
-          (showArchive ? projects : live).map((p) => (
-            <AppIcon key={p.id} icon={p.archived ? 'archive' : 'building'} color="accent" accent={p.accent} label={p.name} badge={projectBadge(p)} onClick={() => nav(`p/${p.id}`)} />
+      {!project && (
+        <nav className="app-grid" aria-label={t('apps')}>
+          {!project &&
+            (showArchive ? projects : live).map((p) => (
+              <AppIcon key={p.id} icon={p.archived ? 'archive' : 'building'} color="accent" accent={p.accent} label={p.name} badge={projectBadge(p)} onClick={() => nav(`p/${p.id}`)} />
+            ))}
+          {!project && isManager && <AppIcon icon="plus" color="glass" label={t('new_project')} onClick={() => setCreating(true)} />}
+          {!project && apps.map((a) => (
+            <AppIcon
+              key={a.id}
+              icon={a.icon}
+              color={a.color}
+              label={t('nav_' + a.id)}
+              soon={a.soon}
+              badge={badges[a.id] || 0}
+              onClick={() => nav(project ? `p/${project.id}/${a.id}` : `app/${a.id}`)}
+            />
           ))}
-        {!project && isManager && <AppIcon icon="plus" color="glass" label={t('new_project')} onClick={() => setCreating(true)} />}
-        {apps.map((a) => (
-          <AppIcon
-            key={a.id}
-            icon={a.icon}
-            color={a.color}
-            label={t('nav_' + a.id)}
-            soon={a.soon}
-            badge={badges[a.id] || 0}
-            onClick={() => nav(project ? `p/${project.id}/${a.id}` : `app/${a.id}`)}
-          />
-        ))}
-      </nav>
+        </nav>
+      )}
+      {project &&
+        APP_GROUPS.map((g) => {
+          const list = apps.filter((a) => a.group === g && (arranging || !hidden.includes(a.id)));
+          if (!list.length) return null;
+          return (
+            <section className="app-group" key={g} aria-label={t('group_' + g)}>
+              <h2>{t('group_' + g)}</h2>
+              <nav className="app-grid">
+                {list.map((a) => (
+                  <AppIcon
+                    key={a.id}
+                    icon={a.icon}
+                    color={a.color}
+                    label={t('nav_' + a.id)}
+                    badge={arranging ? 0 : badges[a.id] || 0}
+                    hidden={hidden.includes(a.id)}
+                    pressed={arranging ? !hidden.includes(a.id) : undefined}
+                    onClick={() => (arranging ? toggleHidden(a.id) : nav(`p/${project.id}/${a.id}`))}
+                  />
+                ))}
+              </nav>
+            </section>
+          );
+        })}
+      {project && (
+        <div className="arrange-bar">
+          {arranging && <span className="muted">{t('arrange_hint')}</span>}
+          <button className={`btn ${arranging ? 'primary' : 'ghost'}`} onClick={() => setArranging(!arranging)}>
+            <Icon name={arranging ? 'check' : 'gear'} size={15} />
+            {arranging ? t('done') : hidden.length ? `${t('arrange')} · ${hidden.length} ${t('hidden_count')}` : t('arrange')}
+          </button>
+        </div>
+      )}
 
       {!project && archived.length > 0 && (
         <button className="btn ghost archive-toggle" onClick={() => setShowArchive(!showArchive)}>

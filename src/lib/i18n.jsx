@@ -759,6 +759,18 @@ Object.assign(D, {
   no_templates: ['עדיין לא נשמרו תבניות. שמרו אחת מלוח הזמנים של פרויקט.', 'No templates saved yet. Save one from a project’s schedule.'],
 });
 
+Object.assign(D, {
+  group_work: ['עבודות', 'Work'],
+  group_people: ['אנשים', 'People'],
+  group_money: ['כספים ומשאבים', 'Money and resources'],
+  group_control: ['בקרה', 'Control'],
+  arrange: ['התאמת שולחן העבודה', 'Customise desktop'],
+  arrange_hint: ['לחצו על יישום כדי להסתיר או להציג אותו', 'Tap an app to hide or show it'],
+  done: ['סיום', 'Done'],
+  hidden: ['מוסתר', 'Hidden'],
+  hidden_count: ['מוסתרים', 'hidden'],
+});
+
 // A key's label in every language — used to recognise column headers in imported files.
 export const labelsOf = (key) => [...(D[key] || []), RU[key]].filter(Boolean);
 export const LANGS = ['he', 'en', 'ru'];
