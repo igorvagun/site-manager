@@ -1,6 +1,14 @@
 import { todayISO, addDays, parseISO, uid } from './utils';
 
 // Demo data, generated relative to today so the dashboard always looks alive.
+export const USER_IDS = {
+  manager: '00000000-0000-4000-8000-000000000001',
+  foreman: '00000000-0000-4000-8000-000000000002',
+  worker: '00000000-0000-4000-8000-000000000003',
+};
+const P1 = '00000000-0000-4000-8000-0000000000a1';
+const P2 = '00000000-0000-4000-8000-0000000000a2';
+
 export function buildSeed(lang = 'he') {
   const L = (he, en) => (lang === 'he' ? he : en);
   const today = todayISO();
@@ -28,6 +36,13 @@ export function buildSeed(lang = 'he') {
       daily_rate,
       company: companies[i === 5 || i === 6 ? 2 : i % 3 === 1 ? 1 : 0],
       phone: `05${(i % 5) + 0}-${String(5550100 + i * 137).slice(0, 7)}`,
+      email: '',
+      id_number: String(300145820 + i * 7919),
+      hourly_rate: Math.round(daily_rate / 9),
+      start_date: d(-130 + i * 6),
+      emergency_contact: '',
+      notes: '',
+      user_id: i === 0 ? USER_IDS.foreman : i === 1 ? USER_IDS.worker : null,
       active: true,
     }))
   );
@@ -209,29 +224,105 @@ export function buildSeed(lang = 'he') {
     }))
   );
 
-  const project = mk([
+  const users = [
+    { id: USER_IDS.manager, name: L('דנה אלון', 'Dana Alon'), email: 'manager@demo.site', role: 'manager', created_at: now },
+    { id: USER_IDS.foreman, name: wn(0), email: 'foreman@demo.site', role: 'foreman', created_at: now },
+    { id: USER_IDS.worker, name: wn(1), email: 'worker@demo.site', role: 'worker', created_at: now },
+  ];
+
+  const positions = mk(
+    [...new Map(W.map(([, role, rate]) => [role, rate])).entries()].map(([name, rate]) => ({
+      name,
+      hourly_rate: Math.round(rate / 9),
+    }))
+  );
+
+  const projects = [
     {
+      id: P1,
+      created_at: now,
       name: L('מגדלי הפארק — בניין B', 'Park Towers — Building B'),
       address: L('רחוב הזית 14, חיפה', '14 HaZayit St, Haifa'),
       client: L('אלון נדל״ן בע״מ', 'Alon Real Estate Ltd'),
-      manager: wn(0),
+      manager: users[0].name,
       start_date: d(-130),
       end_date: d(125),
       currency: '₪',
+      wallpaper: 'ocean',
+      accent: 'blue',
     },
+    {
+      id: P2,
+      created_at: now,
+      name: L('שיפוץ בית ספר אורנים', 'Oranim School Renovation'),
+      address: L('דרך האורן 3, קריית טבעון', '3 HaOren Rd, Kiryat Tivon'),
+      client: L('מועצה מקומית טבעון', 'Tivon Local Council'),
+      manager: users[0].name,
+      start_date: d(-30),
+      end_date: d(90),
+      currency: '₪',
+      wallpaper: 'sunset',
+      accent: 'orange',
+    },
+  ];
+
+  const scope = (pid, rows) => rows.map((r) => ({ ...r, project_id: pid }));
+
+  // A second, smaller project so the multi-project desktop has something to show.
+  const w2 = mk(
+    [
+      [L('רון אביטל', 'Ron Avital'), L('מנהל עבודה', 'Foreman'), 920],
+      [L('חאלד מנסור', 'Khaled Mansour'), L('רצף', 'Tiler'), 690],
+      [L('איגור לבין', 'Igor Levin'), L('חשמלאי', 'Electrician'), 820],
+      [L('תומר דהן', 'Tomer Dahan'), L('פועל בניין', 'Laborer'), 520],
+    ].map(([name, role, daily_rate], i) => ({
+      name, role, daily_rate, company: companies[0], phone: `05${i + 2}-66601${i}7`, email: '', id_number: String(311204567 + i * 6131),
+      hourly_rate: Math.round(daily_rate / 9), start_date: d(-30), emergency_contact: '', notes: '', user_id: null, active: true,
+    }))
+  );
+  const t2 = mk(
+    [
+      [L('פירוק והריסה', 'Demolition & strip-out'), 'קרקע', 'done', 100, -30, -16, 2600, [0, 3]],
+      [L('החלפת תשתיות חשמל', 'Electrical rewiring'), 'א', 'active', 55, -15, 12, 3100, [2]],
+      [L('ריצוף כיתות', 'Classroom flooring'), 'א', 'active', 20, -4, 24, 2900, [1, 3]],
+      [L('צבע וגמרים', 'Painting & finishes'), 'א', 'pending', 0, 25, 60, 2400, []],
+      [L('חצר ופיתוח', 'Yard & landscaping'), 'חוץ', 'pending', 0, 61, 90, 2200, []],
+    ].map(([name, floor, status, progress, s0, e0, daily_cost, w], i) => ({
+      name, floor, status, progress, start_date: d(s0), end_date: d(e0), daily_cost, workers: w.map((k) => w2[k].name), notes: '', position: i + 1,
+    }))
+  );
+  const a2 = [];
+  for (let back = 6; back >= 0; back--) {
+    const date = d(-back);
+    if (parseISO(date).getDay() === 6) continue;
+    w2.forEach((w, i) => a2.push({ worker_id: w.id, date, status: (i + back) % 6 === 5 ? 'absent' : 'present', hours: (i + back) % 6 === 5 ? 0 : 9 }));
+  }
+  const b2 = mk([
+    { category: 'materials', planned: 260000 },
+    { category: 'labor', planned: 310000 },
+    { category: 'equipment', planned: 60000 },
+    { category: 'subcontractors', planned: 90000 },
+  ]);
+  const e2 = mk([
+    { date: d(-26), category: 'equipment', description: L('מכולות פינוי פסולת', 'Waste skips'), vendor: L('פינוי הצפון', 'North Haulage'), amount: 18000, status: 'paid' },
+    { date: d(-14), category: 'materials', description: L('כבלים ולוחות חשמל', 'Cables & panels'), vendor: L('חשמל ישיר', 'Hashmal Yashir'), amount: 64000, status: 'paid' },
+    { date: d(-5), category: 'labor', description: L('שכר — חודש 1', 'Payroll — month 1'), vendor: L('צוות החברה', 'In-house'), amount: 82000, status: 'paid' },
+    { date: d(-2), category: 'materials', description: L('אריחי גרניט פורצלן', 'Porcelain tiles'), vendor: L('נגב קרמיקה', 'Negev Ceramics'), amount: 47000, status: 'pending' },
   ]);
 
   return {
-    project,
-    tasks,
-    workers,
-    attendance: mk(attendance),
-    logs,
-    expenses,
-    budget_lines,
-    change_orders,
-    issues,
-    safety,
-    materials,
+    users,
+    positions,
+    projects,
+    tasks: [...scope(P1, tasks), ...scope(P2, t2)],
+    workers: [...scope(P1, workers), ...scope(P2, w2)],
+    attendance: [...scope(P1, mk(attendance)), ...scope(P2, mk(a2))],
+    logs: scope(P1, logs),
+    expenses: [...scope(P1, expenses), ...scope(P2, e2)],
+    budget_lines: [...scope(P1, budget_lines), ...scope(P2, b2)],
+    change_orders: scope(P1, change_orders),
+    issues: scope(P1, issues),
+    safety: scope(P1, safety),
+    materials: scope(P1, materials),
   };
 }

@@ -1,32 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useI18n } from './lib/i18n';
-import { initStore, useStore } from './lib/store';
+import { initStore, useStore, useUser, setProject, logout } from './lib/store';
+import { PROJECT_APPS, HOME_APPS } from './lib/apps';
 import { Icon, Toasts, IconButton } from './components/ui';
-import Dashboard from './views/Dashboard';
-import Schedule from './views/Schedule';
-import DailyLog from './views/DailyLog';
-import Team from './views/Team';
-import Budget from './views/Budget';
-import Issues from './views/Issues';
-import Safety from './views/Safety';
-import Materials from './views/Materials';
-import Settings from './views/Settings';
+import Login from './views/Login';
+import Desktop from './views/Desktop';
+import { nav } from './lib/nav';
 
-const NAV = [
-  { id: 'dashboard', icon: 'grid', view: Dashboard },
-  { id: 'schedule', icon: 'calendar', view: Schedule },
-  { id: 'log', icon: 'book', view: DailyLog },
-  { id: 'team', icon: 'users', view: Team },
-  { id: 'budget', icon: 'wallet', view: Budget },
-  { id: 'issues', icon: 'check', view: Issues },
-  { id: 'safety', icon: 'shield', view: Safety },
-  { id: 'materials', icon: 'box', view: Materials },
-  { id: 'settings', icon: 'gear', view: Settings },
-];
-
-const readHash = () => {
-  const h = location.hash.replace('#/', '');
-  return NAV.some((n) => n.id === h) ? h : 'dashboard';
+// #/                    → home desktop
+// #/app/<id>            → account-level app
+// #/p/<projectId>       → project desktop
+// #/p/<projectId>/<id>  → project app
+const readRoute = () => {
+  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  if (parts[0] === 'app' && parts[1]) return { app: parts[1] };
+  if (parts[0] === 'p' && parts[1]) return { pid: parts[1], app: parts[2] || null };
+  return {};
 };
 
 export function useTheme() {
@@ -59,25 +48,47 @@ export function useTheme() {
 
 export default function App() {
   const { t, lang, setLang } = useI18n();
-  const { loading, mode, data } = useStore();
-  const [route, setRoute] = useState(readHash);
+  const { loading, data, projectId } = useStore();
+  const user = useUser();
+  const [route, setRoute] = useState(readRoute);
   const [theme, setTheme, isDark] = useTheme();
 
   useEffect(() => {
     initStore(lang);
-    const onHash = () => setRoute(readHash());
+    const onHash = () => setRoute(readRoute());
     addEventListener('hashchange', onHash);
     return () => removeEventListener('hashchange', onHash);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const go = (id) => {
-    location.hash = '#/' + id;
-    document.querySelector('.content')?.scrollTo({ top: 0 });
-    scrollTo({ top: 0 });
-  };
-  const View = NAV.find((n) => n.id === route).view;
-  const project = data.project[0];
+  // Which projects this person may open: managers see all, others only where they are on the crew.
+  const myProjects = !user
+    ? []
+    : user.role === 'manager'
+    ? data.projects
+    : data.projects.filter((p) => data.workers.some((w) => w.project_id === p.id && w.user_id === user.id));
+  const project = route.pid ? myProjects.find((p) => p.id === route.pid) : null;
+  const apps = (project ? PROJECT_APPS : HOME_APPS).filter((a) => user && a.roles.includes(user.role));
+  const app = route.app ? apps.find((a) => a.id === route.app && a.view) : null;
+
+  useEffect(() => {
+    setProject(project ? project.id : null);
+  }, [project]);
+
+  // Each project carries its own look; the home desktop uses the default one.
+  useEffect(() => {
+    const el = document.documentElement;
+    el.dataset.wall = project?.wallpaper || 'aurora';
+    el.dataset.accent = project?.accent || 'blue';
+  }, [project?.wallpaper, project?.accent]);
+
+  // Unknown or forbidden route → fall back to the nearest valid screen.
+  useEffect(() => {
+    if (loading || !user) return;
+    if (route.pid && !project) nav('');
+    else if (route.app && !app) nav(project ? `p/${project.id}` : '');
+  }, [loading, user, route, project, app]);
+
   const controls = (
     <div className="pill-group">
       <button className="pill" onClick={() => setLang(lang === 'he' ? 'en' : 'he')} aria-label={t('language')}>
@@ -88,6 +99,58 @@ export default function App() {
     </div>
   );
 
+  let body;
+  if (loading) {
+    body = (
+      <div className="loading">
+        <div className="spinner" />
+        {t('loading')}
+      </div>
+    );
+  } else if (!user) {
+    body = <Login controls={controls} />;
+  } else if (app && (!project || projectId === project.id)) {
+    const View = app.view;
+    const backTo = project ? `p/${project.id}` : '';
+    body = (
+      <div className="window">
+        <header className="glass window-bar">
+          <button className="pill back" onClick={() => nav(backTo)}>
+            <Icon name="back" size={18} className="flip-rtl" />
+            <span>{project ? project.name : t('home')}</span>
+          </button>
+          <div className="window-title">
+            <span className={`app-icon tiny c-${app.color}`}>
+              <Icon name={app.icon} size={13} />
+            </span>
+            {t('nav_' + app.id)}
+          </div>
+          {controls}
+        </header>
+        <main className="view" key={route.pid + ':' + app.id}>
+          <View go={(id) => nav(`${backTo}/${id}`)} theme={theme} setTheme={setTheme} project={project} />
+        </main>
+      </div>
+    );
+  } else if (!route.pid || (project && projectId === project.id)) {
+    body = (
+      <Desktop
+        key={project?.id || 'home'}
+        user={user}
+        project={project}
+        projects={myProjects}
+        apps={apps}
+        controls={controls}
+        onLogout={() => {
+          logout();
+          nav('');
+        }}
+      />
+    );
+  } else {
+    body = null;
+  }
+
   return (
     <>
       <div className="wallpaper" aria-hidden="true">
@@ -96,59 +159,7 @@ export default function App() {
         <i />
         <i />
       </div>
-
-      <div className="shell">
-        <nav className="glass sidebar" aria-label={t('navigation')}>
-          <div className="brand">
-            <div className="brand-mark">
-              <Icon name="hardhat" size={22} />
-            </div>
-            <div className="brand-text">
-              <b>Site Manager</b>
-              <span>{project?.name || t('app_tagline')}</span>
-            </div>
-          </div>
-          <div className="nav-items">
-            {NAV.map((n) => (
-              <button
-                key={n.id}
-                className={`nav-item ${route === n.id ? 'on' : ''}`}
-                aria-current={route === n.id ? 'page' : undefined}
-                onClick={() => go(n.id)}
-              >
-                <Icon name={n.icon} size={20} />
-                <span>{t('nav_' + n.id)}</span>
-              </button>
-            ))}
-          </div>
-          <div className="sidebar-foot">
-            {controls}
-            <div className="mode">
-              <span className={`mode-dot ${mode}`} />
-              <span>{t(mode === 'cloud' ? 'mode_cloud' : 'mode_local')}</span>
-            </div>
-          </div>
-        </nav>
-
-        <main className="content">
-          <div className="topbar">
-            <div className="glass topbar-inner">
-              <b>Site Manager</b>
-              {controls}
-            </div>
-          </div>
-          {loading ? (
-            <div className="loading">
-              <div className="spinner" />
-              {t('loading')}
-            </div>
-          ) : (
-            <div className="view" key={route}>
-              <View go={go} theme={theme} setTheme={setTheme} />
-            </div>
-          )}
-        </main>
-      </div>
+      {body}
       <Toasts />
     </>
   );

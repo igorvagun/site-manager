@@ -1,10 +1,11 @@
-import { useSyncExternalStore } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { supabase } from './supabase';
 import { buildSeed } from './seed';
 import { uid } from './utils';
 
-export const COLLECTIONS = [
-  'project',
+// Collections shared by the whole account vs. rows that belong to one project.
+export const GLOBAL = ['users', 'positions', 'projects'];
+export const SCOPED = [
   'tasks',
   'workers',
   'attendance',
@@ -16,8 +17,17 @@ export const COLLECTIONS = [
   'safety',
   'materials',
 ];
+export const COLLECTIONS = [...GLOBAL, ...SCOPED];
 
-const LS_KEY = 'site-manager:data:v1';
+const LS_KEY = 'site-manager:data:v2';
+const SESSION_KEY = 'site-manager:session';
+const readSession = () => {
+  try {
+    return localStorage.getItem(SESSION_KEY);
+  } catch {
+    return null;
+  }
+};
 const emptyData = () => Object.fromEntries(COLLECTIONS.map((c) => [c, []]));
 
 let state = {
@@ -26,6 +36,8 @@ let state = {
   mode: supabase ? 'cloud' : 'local',
   cloudErrors: [],
   toasts: [],
+  projectId: null,
+  userId: readSession(),
 };
 const listeners = new Set();
 
@@ -61,7 +73,7 @@ function useLocal(lang) {
   } catch {
     data = null;
   }
-  if (!data || !Array.isArray(data.tasks)) data = buildSeed(lang);
+  if (!data || !Array.isArray(data.projects)) data = buildSeed(lang);
   set({ data: { ...emptyData(), ...data }, loading: false, mode: 'local' });
   persist();
 }
@@ -71,6 +83,7 @@ export async function initStore(lang) {
   if (started) return;
   started = true;
   if (!supabase) return useLocal(lang);
+  await restoreCloudSession();
 
   const results = await Promise.all(
     COLLECTIONS.map(async (name) => {
@@ -119,6 +132,7 @@ const remote = () => state.mode === 'cloud' && supabase;
 
 export async function addRow(name, row) {
   const full = { id: uid(), created_at: new Date().toISOString(), ...row };
+  if (SCOPED.includes(name) && !full.project_id) full.project_id = state.projectId;
   setRows(name, (rows) => [...rows, full]);
   if (remote()) {
     const { error } = await supabase.from(name).insert(full);
@@ -181,6 +195,63 @@ export async function replaceAll(data) {
   }
   set({ data: next });
   persist();
+  if (!next.users.some((u) => u.id === state.userId)) logout();
+}
+
+// ───── Session ─────
+function setSession(userId) {
+  try {
+    if (userId) localStorage.setItem(SESSION_KEY, userId);
+    else localStorage.removeItem(SESSION_KEY);
+  } catch {
+    /* private mode */
+  }
+  set({ userId: userId || null });
+}
+
+async function restoreCloudSession() {
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (!data?.session) set({ userId: null });
+  } catch {
+    set({ userId: null });
+  }
+}
+
+// Demo accounts all use this password in local mode; real auth goes through Supabase.
+export const DEMO_PASSWORD = 'demo';
+
+export async function login(email, password) {
+  const user = state.data.users.find((u) => (u.email || '').toLowerCase() === String(email).trim().toLowerCase());
+  if (remote()) {
+    const { error } = await supabase.auth.signInWithPassword({ email: String(email).trim(), password });
+    if (error) return 'login_bad';
+    if (!user) return 'login_no_profile';
+  } else if (!user || password !== DEMO_PASSWORD) {
+    return 'login_bad';
+  }
+  setSession(user.id);
+  return null;
+}
+
+export function loginAs(userId) {
+  if (state.mode === 'local' && state.data.users.some((u) => u.id === userId)) setSession(userId);
+}
+
+export function logout() {
+  if (remote()) supabase.auth.signOut().catch(() => {});
+  setSession(null);
+}
+
+export function setProject(id) {
+  if (state.projectId !== id) set({ projectId: id });
+}
+
+export async function deleteProject(id) {
+  for (const name of SCOPED) {
+    for (const r of state.data[name].filter((x) => x.project_id === id)) await removeRow(name, r.id);
+  }
+  await removeRow('projects', id);
 }
 
 export const loadDemo = (lang) => replaceAll(buildSeed(lang));
@@ -193,6 +264,19 @@ const subscribe = (l) => {
 export function useStore() {
   return useSyncExternalStore(subscribe, getState);
 }
+// Data as seen from inside the open project: scoped rows are filtered to it.
 export function useData() {
-  return useStore().data;
+  const { data, projectId } = useStore();
+  return useMemo(() => {
+    const out = {};
+    GLOBAL.forEach((c) => (out[c] = data[c]));
+    SCOPED.forEach((c) => (out[c] = data[c].filter((r) => r.project_id === projectId)));
+    out.project = data.projects.filter((p) => p.id === projectId);
+    return out;
+  }, [data, projectId]);
+}
+
+export function useUser() {
+  const { data, userId } = useStore();
+  return data.users.find((u) => u.id === userId) || null;
 }

@@ -1,5 +1,6 @@
 -- Site Manager — Supabase schema.
 -- Safe to re-run. After running, open the app → Settings → "Load demo data" to seed sample content.
+-- Sign-in uses Supabase Auth (email + password); create an Auth user for each row in `users`.
 --
 -- SECURITY NOTE: the policies below give the public anon key full read/write access,
 -- matching the original single-table setup. Anyone with the app URL can change data.
@@ -21,15 +22,33 @@ CREATE TABLE IF NOT EXISTS tasks (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS project (
+CREATE TABLE IF NOT EXISTS projects (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT DEFAULT '',
+  name TEXT NOT NULL DEFAULT '',
   address TEXT DEFAULT '',
   client TEXT DEFAULT '',
   manager TEXT DEFAULT '',
   start_date DATE,
   end_date DATE,
   currency TEXT DEFAULT '₪',
+  wallpaper TEXT DEFAULT 'aurora',
+  accent TEXT DEFAULT 'blue',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- App profiles. `email` must match the Supabase Auth account; `role` decides what the person sees.
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  role TEXT NOT NULL DEFAULT 'worker', -- manager | foreman | worker
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS positions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  hourly_rate NUMERIC NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -40,6 +59,13 @@ CREATE TABLE IF NOT EXISTS workers (
   company TEXT DEFAULT '',
   phone TEXT DEFAULT '',
   daily_rate NUMERIC NOT NULL DEFAULT 0,
+  hourly_rate NUMERIC NOT NULL DEFAULT 0,
+  email TEXT DEFAULT '',
+  id_number TEXT DEFAULT '',
+  start_date DATE,
+  emergency_contact TEXT DEFAULT '',
+  notes TEXT DEFAULT '',
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -134,11 +160,23 @@ CREATE TABLE IF NOT EXISTS materials (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Every project-scoped table points at its project; deleting a project removes its rows.
+DO $$
+DECLARE t TEXT;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['tasks','workers','attendance','logs','expenses',
+                           'budget_lines','change_orders','issues','safety','materials']
+  LOOP
+    EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE CASCADE', t);
+    EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (project_id)', t || '_project_idx', t);
+  END LOOP;
+END $$;
+
 -- Row level security + realtime for every table.
 DO $$
 DECLARE t TEXT;
 BEGIN
-  FOREACH t IN ARRAY ARRAY['tasks','project','workers','attendance','logs','expenses',
+  FOREACH t IN ARRAY ARRAY['projects','users','positions','tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials']
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);

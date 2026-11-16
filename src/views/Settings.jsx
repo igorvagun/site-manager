@@ -1,43 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useI18n } from '../lib/i18n';
-import { useStore, addRow, updateRow, replaceAll, loadDemo, notify, COLLECTIONS } from '../lib/store';
-import { Card, Icon, Field, Segmented, PageHead } from '../components/ui';
+import { useStore, useUser, replaceAll, loadDemo, notify, COLLECTIONS } from '../lib/store';
+import { Card, Icon, Segmented, PageHead } from '../components/ui';
 import { downloadFile, todayISO } from '../lib/utils';
 
 export default function Settings({ theme, setTheme }) {
   const { t, lang, setLang } = useI18n();
   const { data, mode, cloudErrors } = useStore();
-  const project = data.project[0];
-  const [form, setForm] = useState(project || { name: '', address: '', client: '', manager: '', start_date: '', end_date: '', currency: '₪' });
+  const user = useUser();
   const fileRef = useRef(null);
-  useEffect(() => {
-    if (project) setForm(project);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [project?.id]);
+  const isManager = user?.role === 'manager';
 
-  const fields = [
-    { key: 'name', label: t('project_name') },
-    { key: 'address', label: t('address') },
-    { key: 'client', label: t('client'), half: true },
-    { key: 'manager', label: t('site_manager'), half: true },
-    { key: 'start_date', label: t('start'), type: 'date', half: true },
-    { key: 'end_date', label: t('handover'), type: 'date', half: true },
-    { key: 'currency', label: t('currency'), type: 'select', half: true, options: ['₪', '$', '€', '£'].map((c) => ({ value: c, label: c })) },
-  ];
-  const save = (e) => {
-    e.preventDefault();
-    if (form.start_date && form.end_date && form.end_date < form.start_date) return notify('date_order', 'error');
-    const row = { ...form, start_date: form.start_date || null, end_date: form.end_date || null };
-    project ? updateRow('project', project.id, row) : addRow('project', row);
-    notify('saved');
-  };
   const restore = async (e) => {
     const file = e.target.files[0];
     e.target.value = '';
     if (!file) return;
     try {
       const json = JSON.parse(await file.text());
-      if (!json || !COLLECTIONS.some((c) => Array.isArray(json[c]))) throw new Error('bad file');
+      if (!json || !Array.isArray(json.projects) || !Array.isArray(json.users)) throw new Error('bad file');
       if (!confirm(t('confirm_restore'))) return;
       await replaceAll(json);
       notify('restored');
@@ -50,21 +30,19 @@ export default function Settings({ theme, setTheme }) {
     <>
       <PageHead title={t('nav_settings')} subtitle={t('settings_sub')} />
       <div className="grid two-col">
-        <Card title={t('project_details')}>
-          <form onSubmit={save}>
-            <div className="form-grid">
-              {fields.map((f) => (
-                <Field key={f.key} field={f} value={form[f.key]} onChange={(v) => setForm((s) => ({ ...s, [f.key]: v }))} />
-              ))}
-            </div>
-            <div className="modal-foot">
-              <span className="spacer" />
-              <button className="btn primary" type="submit">{t('save')}</button>
-            </div>
-          </form>
-        </Card>
-
         <div className="stack">
+          <Card title={t('account')}>
+            <div className="setting">
+              <span className="user-chip">
+                <span className="avatar">{user.name.slice(0, 1)}</span>
+                <span className="user-name">
+                  <b>{user.name}</b>
+                  <small dir="ltr">{user.email}</small>
+                </span>
+              </span>
+              <span className="badge tone-blue">{t('role_' + user.role)}</span>
+            </div>
+          </Card>
           <Card title={t('appearance')}>
             <div className="setting">
               <span>{t('language')}</span>
@@ -83,17 +61,19 @@ export default function Settings({ theme, setTheme }) {
               />
             </div>
           </Card>
+        </div>
 
-          <Card title={t('data')}>
-            <div className="setting">
-              <span>
-                <span className={`mode-dot ${mode}`} /> {t(mode === 'cloud' ? 'mode_cloud' : 'mode_local')}
-              </span>
-              <small>{t(mode === 'cloud' ? 'mode_cloud_hint' : 'mode_local_hint')}</small>
-            </div>
-            {cloudErrors.length > 0 && <p className="form-error">{t('cloud_missing_tables')}: {cloudErrors.join(', ')}</p>}
+        <Card title={t('data')}>
+          <div className="setting">
+            <span>
+              <span className={`mode-dot ${mode}`} /> {t(mode === 'cloud' ? 'mode_cloud' : 'mode_local')}
+            </span>
+            <small>{t(mode === 'cloud' ? 'mode_cloud_hint' : 'mode_local_hint')}</small>
+          </div>
+          {cloudErrors.length > 0 && <p className="form-error">{t('cloud_missing_tables')}: {cloudErrors.join(', ')}</p>}
+          {isManager && (
             <div className="btn-row">
-              <button className="btn" onClick={() => downloadFile(`site-manager-backup-${todayISO()}.json`, JSON.stringify(data, null, 2), 'application/json')}>
+              <button className="btn" onClick={() => downloadFile(`site-manager-backup-${todayISO()}.json`, JSON.stringify(Object.fromEntries(COLLECTIONS.map((c) => [c, data[c]])), null, 2), 'application/json')}>
                 <Icon name="download" size={16} />
                 {t('backup')}
               </button>
@@ -114,8 +94,8 @@ export default function Settings({ theme, setTheme }) {
                 {t('load_demo')}
               </button>
             </div>
-          </Card>
-        </div>
+          )}
+        </Card>
       </div>
     </>
   );

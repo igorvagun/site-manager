@@ -39,14 +39,26 @@ export default function Team() {
       .filter((w) => w.active !== false && !rec(w))
       .forEach((w) => addRow('attendance', { worker_id: w.id, date, status: 'present', hours: 9 }));
 
+  const positionOptions = (current) => {
+    const names = data.positions.map((p) => p.name);
+    if (current && !names.includes(current)) names.push(current);
+    return [{ value: '', label: '—' }, ...names.map((n) => ({ value: n, label: n }))];
+  };
   const fields = [
     { key: 'name', label: t('full_name'), required: true },
-    { key: 'role', label: t('role'), half: true },
+    { key: 'role', label: t('position'), type: 'select', options: positionOptions(editing?.role), half: true },
     { key: 'company', label: t('company'), half: true },
     { key: 'phone', label: t('phone'), type: 'tel', half: true },
+    { key: 'email', label: t('email'), type: 'email', half: true },
+    { key: 'id_number', label: t('id_number'), half: true },
+    { key: 'start_date', label: t('employment_start'), type: 'date', half: true },
+    { key: 'hourly_rate', label: t('hourly_rate'), type: 'number', min: 0, half: true },
     { key: 'daily_rate', label: t('daily_rate'), type: 'number', min: 0, half: true },
+    { key: 'emergency_contact', label: t('emergency_contact'), half: true },
     { key: 'active', label: t('status'), type: 'select', half: true, options: [{ value: 'yes', label: t('active') }, { value: 'no', label: t('inactive') }] },
+    { key: 'notes', label: t('notes'), type: 'textarea' },
   ];
+  const blankWorker = { name: '', role: '', company: '', phone: '', email: '', id_number: '', start_date: today, hourly_rate: '', daily_rate: '', emergency_contact: '', notes: '', active: 'yes' };
 
   return (
     <>
@@ -67,7 +79,7 @@ export default function Team() {
           <Icon name="download" size={16} />
           CSV
         </button>
-        <button className="btn primary" onClick={() => setEditing({ name: '', role: '', company: '', phone: '', daily_rate: '', active: 'yes' })}>
+        <button className="btn primary" onClick={() => setEditing(blankWorker)}>
           <Icon name="plus" size={16} />
           {t('new_worker')}
         </button>
@@ -108,10 +120,10 @@ export default function Team() {
                     <b>{w.name}</b>
                     <small>{[w.role, w.company].filter(Boolean).join(' · ')}</small>
                   </div>
-                  <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...w, active: w.active === false ? 'no' : 'yes' })} />
+                  <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...blankWorker, ...w, start_date: w.start_date || '', active: w.active === false ? 'no' : 'yes' })} />
                 </header>
                 <div className="worker-meta">
-                  <span>{fmtMoney(w.daily_rate, cur)}/{t('day')}</span>
+                  <span>{fmtMoney(w.hourly_rate || 0, cur)}/{t('hr')} · {fmtMoney(w.daily_rate, cur)}/{t('day')}</span>
                   {w.phone && <a href={`tel:${w.phone}`} dir="ltr">{w.phone}</a>}
                   <div className="week-dots" title={t('last_7_days')}>
                     {last7.map((d) => {
@@ -156,6 +168,10 @@ export default function Team() {
           onClose={() => setEditing(null)}
           onSave={(v) => {
             const row = { ...v, active: v.active !== 'no' };
+            // Picking a position fills in its default hourly rate when none was typed.
+            const pos = data.positions.find((p) => p.name === row.role);
+            if (pos && !row.hourly_rate) row.hourly_rate = pos.hourly_rate;
+            if (!row.daily_rate && row.hourly_rate) row.daily_rate = row.hourly_rate * 9;
             editing.id ? updateRow('workers', editing.id, row) : addRow('workers', row);
           }}
           onDelete={
