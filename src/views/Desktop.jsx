@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { subLate } from './Subcontracts';
+import { openActions } from './Meetings';
 import { docsNeedingAttention } from './Documents';
 import { useI18n } from '../lib/i18n';
 import { useStore, useData, addRow } from '../lib/store';
@@ -88,6 +89,7 @@ function useBadges(user, project) {
     // Managers also see requests waiting for their approval.
     materials: data.materials.filter((x) => Number(x.qty) < Number(x.min_qty)).length + (user.role === 'manager' ? data.requests.filter((r) => r.status === 'pending').length : 0),
     subs: data.subcontracts.filter((x) => subLate(x, today)).length,
+    meetings: openActions(data.meetings, data.issues).filter((a) => a.due_date && a.due_date < today).length,
     docs: docsNeedingAttention(data.documents, today).length,
     quality: data.inspections.filter((x) => x.status === 'failed').length,
     equipment: equipmentAlerts(data.equipment, today).overdue.length + data.equipment.filter((e) => e.status !== 'returned' && e.inspection_date && e.inspection_date < today).length,

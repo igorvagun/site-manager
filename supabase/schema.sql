@@ -395,6 +395,32 @@ CREATE TABLE IF NOT EXISTS checklists (
 );
 ALTER TABLE inspections ADD COLUMN IF NOT EXISTS title TEXT DEFAULT '';
 
+-- Lost working days (weather, late deliveries…) recorded against the schedule.
+CREATE TABLE IF NOT EXISTS delays (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  date DATE NOT NULL,
+  days INT NOT NULL DEFAULT 1,
+  reason TEXT NOT NULL DEFAULT 'weather', -- weather | supply | inspection | other
+  note TEXT DEFAULT '',
+  title TEXT DEFAULT '',
+  moved INT DEFAULT 0,
+  by TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Meetings. attendees: [name]; actions: [{ id, text, assignee, due_date, done, issue_id }]
+CREATE TABLE IF NOT EXISTS meetings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  date DATE NOT NULL,
+  place TEXT DEFAULT '',
+  attendees JSONB NOT NULL DEFAULT '[]'::JSONB,
+  notes TEXT DEFAULT '',
+  actions JSONB NOT NULL DEFAULT '[]'::JSONB,
+  author TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- File storage for drawings, voice and video notes, chat attachments and receipt photos.
 INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', FALSE) ON CONFLICT (id) DO NOTHING;
 DROP POLICY IF EXISTS "site-manager files" ON storage.objects;
@@ -406,7 +432,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements','subcontracts','documents']
+                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements','subcontracts','documents','delays','meetings']
   LOOP
     EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE CASCADE', t);
     EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (project_id)', t || '_project_idx', t);
@@ -419,7 +445,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['projects','users','positions','templates','checklists','tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements','subcontracts','documents']
+                           'drawings','messages','shifts','todos','contacts','equipment','absences','activity','requests','inspections','statements','subcontracts','documents','delays','meetings']
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('DROP POLICY IF EXISTS "Allow all operations for anon" ON %I', t);

@@ -36,6 +36,7 @@ export default function Calendar({ project }) {
       });
     if (can('docs')) data.documents.forEach((x) => add(x.expires_on, x.expires_on < today ? 'red' : 'orange', 'file', `${t('doc_expires')}: ${x.name}`, 'docs'));
     if (can('subs')) data.subcontracts.filter((x) => x.status !== 'done').forEach((x) => add(x.end_date, x.end_date < today ? 'red' : 'purple', 'handshake', `${t('sub_ends')}: ${x.name}`, 'subs'));
+    if (can('meetings')) data.meetings.forEach((x) => add(x.date, 'blue', 'note', `${t('mt_meeting')}: ${x.title}`, 'meetings'));
     if (can('todo')) data.todos.filter((x) => x.user_id === user.id && !x.done).forEach((x) => add(x.due_date, 'neutral', 'list', x.title, 'todo'));
     if (project?.end_date) add(project.end_date, 'green', 'building', t('handover'), lead ? 'dashboard' : 'schedule');
     return out;

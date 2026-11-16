@@ -26,6 +26,7 @@ import History from '../views/History';
 import Quality from '../views/Quality';
 import Subcontracts from '../views/Subcontracts';
 import Documents from '../views/Documents';
+import Meetings from '../views/Meetings';
 
 const ALL = ['manager', 'foreman', 'worker'];
 const LEAD = ['manager', 'foreman'];
@@ -52,6 +53,7 @@ export const PROJECT_APPS = [
   { id: 'receipts', group: 'money', icon: 'receipt', color: 'pink', view: Receipts, roles: LEAD },
   { id: 'subs', group: 'money', icon: 'handshake', color: 'plum', view: Subcontracts, roles: ['manager'] },
   { id: 'docs', group: 'control', icon: 'file', color: 'sky', view: Documents, roles: LEAD },
+  { id: 'meetings', group: 'control', icon: 'note', color: 'sand', view: Meetings, roles: LEAD },
   { id: 'todo', group: 'control', icon: 'list', color: 'slate', view: Todo, roles: ['manager'] },
   { id: 'contacts', group: 'people', icon: 'phone', color: 'lime', view: Contacts, roles: LEAD },
   { id: 'insights', group: 'control', icon: 'sparkle', color: 'purple', view: Insights, roles: ['manager'] },

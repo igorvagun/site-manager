@@ -60,6 +60,7 @@ const ICONS = {
   mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
   receipt: 'M6 3h12v18l-3-2-3 2-3-2-3 2V3zM9 8h6M9 12h6',
   file: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6',
+  note: 'M5 4h14v11l-5 5H5zM14 20v-5h5M8.5 9h7M8.5 12.500h4',
   handshake: 'M3 8l4-2 5 2 5-2 4 2v7l-4 1M3 8v7l3 1M7 6v9M17 6v9M7 15l4 4 2-1.500 2 1.500 2-3M10 11l2 1.500 2-1.500',
 };
 

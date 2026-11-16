@@ -79,6 +79,7 @@ export default function Issues() {
             { value: 'all', label: t('all'), count: count('all') },
             { value: 'punch', label: t('it_punch'), count: count('punch') },
             { value: 'rfi', label: t('it_rfi'), count: count('rfi') },
+            ...(count('action') ? [{ value: 'action', label: t('it_action'), count: count('action') }] : []),
           ]}
         />
         <SearchBox value={q} onChange={setQ} placeholder={t('search_issues')} />
@@ -117,7 +118,7 @@ export default function Issues() {
                     onDragEnd={() => { setDrag(null); setOver(null); }}
                   >
                     <div className="issue-top">
-                      <Badge tone={i.type === 'rfi' ? 'purple' : 'blue'}>{t('it_' + i.type)}</Badge>
+                      <Badge tone={i.type === 'rfi' ? 'purple' : i.type === 'action' ? 'green' : 'blue'}>{t('it_' + i.type)}</Badge>
                       <Badge tone={PRIORITY[i.priority]}>{t('pr_' + i.priority)}</Badge>
                     </div>
                     <button className="issue-title" onClick={() => canEdit(i) && setEditing(i)}>{i.title}</button>

@@ -29,6 +29,8 @@ export const SCOPED = [
   'statements',
   'subcontracts',
   'documents',
+  'delays',
+  'meetings',
 ];
 export const COLLECTIONS = [...GLOBAL, ...SCOPED];
 
@@ -191,8 +193,8 @@ const remote = () => state.mode === 'cloud' && supabase;
 
 // ───── History ─────
 // Who changed what. Kept for the records people ask about later; chats, clock-ins and the like are not logged.
-const TRACKED = ['subcontracts', 'documents', 'requests', 'inspections', 'statements', 'tasks', 'issues', 'expenses', 'budget_lines', 'change_orders', 'workers', 'equipment', 'materials', 'safety', 'drawings', 'contacts', 'logs'];
-const SKIP_FIELDS = ['payments', 'contact_id', 'items', 'lines', 'approved_at', 'ordered_at', 'delivered_at', 'rejected_at', 'signed_at', 'material_id', 'task_id', 'id', 'created_at', 'project_id', 'media', 'photos', 'photo', 'position', 'reactions', 'checklist', 'subtasks', 'steps', 'url', 'file_id', 'started_by', 'finished_by', 'created_by', 'in_by', 'out_by', 'returned_on', 'user_id', 'drawing_id', 'depends_on', 'pin_x', 'pin_y'];
+const TRACKED = ['delays', 'meetings', 'subcontracts', 'documents', 'requests', 'inspections', 'statements', 'tasks', 'issues', 'expenses', 'budget_lines', 'change_orders', 'workers', 'equipment', 'materials', 'safety', 'drawings', 'contacts', 'logs'];
+const SKIP_FIELDS = ['actions', 'moved', 'payments', 'contact_id', 'items', 'lines', 'approved_at', 'ordered_at', 'delivered_at', 'rejected_at', 'signed_at', 'material_id', 'task_id', 'id', 'created_at', 'project_id', 'media', 'photos', 'photo', 'position', 'reactions', 'checklist', 'subtasks', 'steps', 'url', 'file_id', 'started_by', 'finished_by', 'created_by', 'in_by', 'out_by', 'returned_on', 'user_id', 'drawing_id', 'depends_on', 'pin_x', 'pin_y'];
 const MAX_ACTIVITY = 600;
 const titleOf = (row) => row.name || row.title || row.description || row.summary || row.number || '';
 const same = (a, b) => JSON.stringify(a ?? '') === JSON.stringify(b ?? '');

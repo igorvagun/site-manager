@@ -424,6 +424,27 @@ export function buildSeed(lang = 'he') {
     { name: L('מינוי מנהל עבודה', 'Site foreman appointment'), kind: 'other', number: '', issuer: L('משרד העבודה', 'Ministry of Labour'), holder: L('יוסי כהן', 'Yossi Cohen'), issued_on: d(-128), expires_on: null, notes: '' },
   ]);
 
+  const act = (text, assignee, off, done = false) => ({ id: uid(), text, assignee, due_date: d(off), done, issue_id: null });
+  const meetings = mk([
+    {
+      title: L('ישיבת תיאום שבועית', 'Weekly coordination meeting'), date: d(-6), place: L('משרד האתר', 'Site office'), author: L('דנה אלון', 'Dana Alon'),
+      attendees: [L('יוסי כהן', 'Yossi Cohen'), L('אינג׳ רונית שחר', 'Eng. Ronit Shahar'), L('אבי נחום', 'Avi Nahum'), L('נאדר חורי', 'Nader Khoury')],
+      notes: L('יציקת עמודים קומה ג ביום חמישי, בכפוף לאישור המהנדסת.\nשרוולים לאינסטלציה חייבים להיות מוכנים לפני סגירת הטפסנות.', 'Floor 3 column pour on Thursday, subject to the engineer\'s approval.\nPlumbing sleeves must be in before the formwork is closed.'),
+      actions: [
+        act(L('לאשר זיון עמודים קומה ג', 'Approve floor 3 column reinforcement'), L('אינג׳ רונית שחר', 'Eng. Ronit Shahar'), -2, true),
+        act(L('להשלים שרוולים בציר C', 'Finish sleeves on grid C'), L('נאדר חורי', 'Nader Khoury'), -1),
+        act(L('לעדכן לוח זמנים לקומה ד', 'Update the floor 4 programme'), L('יוסי כהן', 'Yossi Cohen'), 3),
+      ],
+    },
+    {
+      title: L('ישיבת מזמין חודשית', 'Monthly client meeting'), date: d(-20), place: '', author: L('דנה אלון', 'Dana Alon'),
+      attendees: [L('גלית מור', 'Galit Mor'), L('אדר׳ עומר ברק', 'Arch. Omer Barak')],
+      notes: L('הוצג סטטוס השלד. המזמין מבקש לבחון שינוי בלובי.', 'Frame status presented. The client wants to look at a change to the lobby.'),
+      actions: [act(L('להעביר סקיצה ללובי', 'Send a lobby sketch'), L('אדר׳ עומר ברק', 'Arch. Omer Barak'), -10, true)],
+    },
+  ]);
+  const delays = mk([{ date: d(-24), days: 1, reason: 'weather', note: L('גשם כבד — הופסקה עבודת העגורן', 'Heavy rain — crane work stopped'), moved: 0, by: L('יוסי כהן', 'Yossi Cohen'), title: L('מזג אוויר', 'Weather') }]);
+
   const todos = mk([
     { title: L('לאשר הזמנת בטון ליום חמישי', 'Confirm Thursday concrete order'), list: L('אתר', 'Site'), priority: 'high', due_date: d(0), done: false, pinned: true, notes: '', subtasks: [{ t: L('כמות: 40 מ״ק', 'Quantity: 40 m³'), done: true }, { t: L('משאבה 10:00', 'Pump at 10:00'), done: false }] },
     { title: L('לתאם ביקורת מהנדס — עמודים קומה ג', 'Book engineer inspection — floor 3 columns'), list: L('אתר', 'Site'), priority: 'high', due_date: d(0), done: false, pinned: false, notes: '', subtasks: [] },
@@ -455,5 +476,7 @@ export function buildSeed(lang = 'he') {
     equipment: scope(P1, equipment),
     subcontracts: scope(P1, subcontracts),
     documents: scope(P1, documents),
+    meetings: scope(P1, meetings),
+    delays: scope(P1, delays),
   };
 }

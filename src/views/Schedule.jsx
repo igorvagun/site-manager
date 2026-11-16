@@ -6,7 +6,7 @@ import { useOptions, TASK_STATUS } from '../lib/constants';
 import { TEMPLATES } from '../lib/templates';
 import ImportDialog from '../components/ImportDialog';
 import { parseDate, parseNumber } from '../lib/csv';
-import { Glass, Badge, Segmented, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox } from '../components/ui';
+import { Glass, Badge, Segmented, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox, Modal } from '../components/ui';
 import { todayISO, addDays, diffDays, parseISO, fmtDate, fmtMoney, workingDays, taskBudget, plannedProgress, exportCSV, clamp, toISO, nextWorkday } from '../lib/utils';
 
 // A task that "follows" another must start after it ends.
@@ -35,6 +35,20 @@ export function shiftPlan(task, tasks) {
   };
   visit(task, new Set());
   return moves;
+}
+
+// A lost day (rain, a missing delivery…): work under way on that date gets longer, work not yet started moves later.
+// Lengths are counted in working days of the project's calendar.
+export const DELAY_REASONS = ['weather', 'supply', 'inspection', 'other'];
+const plusWorkdays = (iso, n) => {
+  let d = iso;
+  for (let i = 0; i < n; i++) d = nextWorkday(d);
+  return d;
+};
+export function delayPlan(tasks, date, days) {
+  return tasks
+    .filter((x) => x.status !== 'done' && x.end_date && x.end_date >= date)
+    .map((x) => ({ id: x.id, name: x.name, start_date: x.start_date >= date ? plusWorkdays(x.start_date, days) : x.start_date, end_date: plusWorkdays(x.end_date, days) }));
 }
 
 export function useTaskFields() {
@@ -149,9 +163,13 @@ export default function Schedule() {
   const [editing, setEditing] = useState(null);
   const [templating, setTemplating] = useState(false);
   // Workers can read the schedule; planning and money are for managers and foremen.
-  const canEdit = useUser().role !== 'worker';
+  const user = useUser();
+  const canEdit = user.role !== 'worker';
   const [savingTpl, setSavingTpl] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [delaying, setDelaying] = useState(false);
+  const [showDelays, setShowDelays] = useState(false);
+  const lostDays = data.delays.reduce((n, x) => n + (Number(x.days) || 0), 0);
   // Built-in templates plus the ones saved from real schedules: key → [[name, working days, cost per day], …]
   const custom = data.templates || [];
   const templateSteps = (key) => (TEMPLATES[key] ? TEMPLATES[key].map(([k, d, c]) => [t(k), d, c]) : (custom.find((x) => x.id === key)?.steps || []).map((x) => [x.name, x.days, x.cost]));
@@ -216,6 +234,10 @@ export default function Schedule() {
           <Icon name="download" size={16} />
           CSV
         </button>
+        <button className="btn" onClick={() => setDelaying(true)}>
+          <Icon name="rain" size={16} />
+          {t('dly_add')}
+        </button>
         <button className="btn" onClick={() => setTemplating(true)}>
           <Icon name="layers" size={16} />
           {t('from_template')}
@@ -254,6 +276,12 @@ export default function Schedule() {
           <option value="">{t('all_floors')}</option>
           {o.floors.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
+        {lostDays > 0 && (
+          <button className="btn ghost" onClick={() => setShowDelays(true)}>
+            <Icon name="rain" size={14} />
+            {t('dly_lost')}: {lostDays}
+          </button>
+        )}
         {filtered && (
           <button className="btn ghost" onClick={() => { setQ(''); setStatus(''); setFloor(''); }}>
             <Icon name="x" size={14} />
@@ -379,6 +407,45 @@ export default function Schedule() {
             notify('template_saved');
           }}
         />
+      )}
+      {delaying && (
+        <EntityForm
+          title={t('dly_add')}
+          fields={[
+            { key: 'date', label: t('date'), type: 'date', required: true, half: true },
+            { key: 'days', label: t('dly_days'), type: 'number', min: 1, required: true, half: true },
+            { key: 'reason', label: t('dly_reason'), type: 'select', options: DELAY_REASONS.map((k) => ({ value: k, label: t('dly_' + k) })) },
+            { key: 'note', label: t('notes'), type: 'textarea', placeholder: t('dly_note_ph') },
+            { key: 'shift', label: t('dly_shift'), type: 'select', options: [{ value: 'yes', label: t('dly_shift_yes') }, { value: 'no', label: t('dly_shift_no') }] },
+          ]}
+          initial={{ date: today, days: 1, reason: 'weather', note: '', shift: 'yes' }}
+          onClose={() => setDelaying(false)}
+          onSave={(v) => {
+            const days = clamp(Math.round(Number(v.days) || 1), 1, 30);
+            const moves = v.shift === 'yes' ? delayPlan(all, v.date, days) : [];
+            moves.forEach((m) => updateRow('tasks', m.id, { start_date: m.start_date, end_date: m.end_date }));
+            addRow('delays', { date: v.date, days, reason: v.reason, note: v.note, moved: moves.length, by: user.name, title: `${t('dly_' + v.reason)} · ${days} ${t('days_short')}` });
+            notify(moves.length ? 'schedule_shifted' : 'saved');
+          }}
+        />
+      )}
+      {showDelays && (
+        <Modal title={`${t('dly_lost')}: ${lostDays}`} onClose={() => setShowDelays(false)}>
+          <ul className="sub-pays">
+            {[...data.delays].sort((a, b) => String(b.date).localeCompare(String(a.date))).map((x) => (
+              <li key={x.id}>
+                <span>{fmtDate(x.date, lang, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                <span className="grow">
+                  <b>{t('dly_' + x.reason)}</b>
+                  {x.note ? ` — ${x.note}` : ''}
+                  <small className="block">{x.moved ? `${t('dly_moved')}: ${x.moved}` : t('dly_not_moved')}{x.by ? ` · ${x.by}` : ''}</small>
+                </span>
+                <b>{x.days} {t('days_short')}</b>
+                <IconButton icon="trash" label={t('delete')} size={15} onClick={() => confirm(t('dly_delete_confirm')) && removeRow('delays', x.id)} />
+              </li>
+            ))}
+          </ul>
+        </Modal>
       )}
       {templating && (
         <EntityForm

@@ -13,9 +13,9 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 
 | App | What it does |
 | --- | --- |
-| Dashboard | What changed since yesterday, progress vs plan, handover forecast at the current pace, budget, crew, alerts, spend chart, next 7 days |
+| Dashboard | Printable status report for the client (money optional); what changed since yesterday, progress vs plan, handover forecast at the current pace, budget, crew, alerts, spend chart, next 7 days |
 | Team | Workers with full details, daily attendance, chat with each worker |
-| Schedule | Task list and Gantt, priorities, dependencies with one-tap shifting, built-in and your own task templates |
+| Schedule | Task list and Gantt, priorities, dependencies with one-tap shifting, built-in and your own task templates; lost days (weather, late delivery) that push unfinished work later |
 | Week plan | The next seven days by day, with the crew plan, planned time off, and double bookings flagged; printable |
 | Calendar | Every dated item of the project on a month grid |
 | Daily Log | Site diary pre-drafted from the day's tasks; photos; printable daily report |
@@ -34,6 +34,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 | AI analyst | Day / week / month statistics from tasks, chats and shifts; written conclusions when AI is connected |
 | Quality | Acceptance checklists by stage — five built-in plus your own — sign-off, failed items turned into issues |
 | Subcontractors | Contracts with completion, retention, payments and what is owed now; payments can go straight into expenses |
+| Meetings | Minutes with attendees and decisions; actions with assignee and due date that can be tracked as issues; printable |
 | Documents | Permits, insurance, certificates and licences with attached files, expiry warnings and renewal |
 | History | Who changed what: tasks, issues, money, crew, equipment — with old and new values |
 | Project settings | Look (wallpaper, accent), details, delete project |
@@ -54,7 +55,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 | --- | --- | --- | --- |
 | Create projects, accounts, positions | yes | no | no |
 | Budget, subcontractors, to-do, AI analyst, project settings | yes | no | no |
-| Team, materials, equipment, receipts, contacts, documents, quality, dashboard | yes | yes | no |
+| Team, materials, equipment, receipts, contacts, documents, meetings, quality, dashboard | yes | yes | no |
 | Edit the schedule, see costs and pay rates | yes | yes | no |
 | Write the daily log, keep safety records, edit or delete any issue | yes | yes | no |
 | Own tasks, time clock, drawings, calendar; raise issues, report hazards, read the daily log | yes | yes | yes |
@@ -105,5 +106,6 @@ bucket `files` in cloud mode. JSON backups contain data only, not these files.
 - **Labour cost of a task:** hours between start and finish × each worker's hourly rate, using the time clock, or the project's standard shift when there is no entry.
 - **Payroll:** hours above the project's standard shift in a day count as overtime — the first 2 at 125%, the rest at 150%.
 - **Handover forecast:** project length ÷ (actual progress ÷ planned progress).
+- **Lost day:** tasks not finished and ending on or after that date end later by the lost working days; tasks not yet started also start later. The handover date itself is not changed.
 - **Subcontract, due now:** contract sum × completion − retention − payments made. Retention stays held until you release it.
 - **Client statement:** task value = planned cost (working days × daily cost) + the markup you enter; each statement bills only progress not billed before.

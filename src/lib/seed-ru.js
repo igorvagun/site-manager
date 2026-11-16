@@ -86,4 +86,10 @@ export const SEED_RU = {
   'Tower crane inspection report': 'Акт освидетельствования башенного крана', 'Certified inspector — Y. Ron': 'Аттестованный инспектор — Й. Рон',
   'Crane operator licence': 'Удостоверение крановщика', 'Ministry of Labour': 'Министерство труда',
   'Work-at-height certificate': 'Допуск к работам на высоте', 'Safety College': 'Колледж по безопасности', 'Site foreman appointment': 'Назначение прораба',
+  'Weekly coordination meeting': 'Еженедельная планёрка', 'Site office': 'Штаб стройки', 'Dana Alon': 'Дана Алон',
+  "Floor 3 column pour on Thursday, subject to the engineer's approval.\nPlumbing sleeves must be in before the formwork is closed.": 'Заливка колонн 3 этажа в четверг — после разрешения инженера.\nГильзы под сантехнику нужно поставить до закрытия опалубки.',
+  'Approve floor 3 column reinforcement': 'Принять армирование колонн 3 этажа', 'Finish sleeves on grid C': 'Доделать гильзы по оси C',
+  'Update the floor 4 programme': 'Обновить график по 4 этажу', 'Monthly client meeting': 'Ежемесячная встреча с заказчиком',
+  'Frame status presented. The client wants to look at a change to the lobby.': 'Показали состояние каркаса. Заказчик хочет рассмотреть изменение в лобби.',
+  'Send a lobby sketch': 'Прислать эскиз лобби', 'Heavy rain — crane work stopped': 'Сильный дождь — кран остановлен', Weather: 'Погода',
 };

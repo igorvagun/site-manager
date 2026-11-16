@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '../lib/i18n';
-import { useData } from '../lib/store';
+import { useData, useUser } from '../lib/store';
+import ProjectReport from './ProjectReport';
 import { useOptions, CATEGORIES, WEATHER } from '../lib/constants';
 import { Card, Glass, Ring, Stat, Meter, Icon, Badge, Empty, PageHead } from '../components/ui';
 import {
@@ -197,6 +198,8 @@ export default function Dashboard({ go }) {
   const data = useData();
   const o = useOptions();
   const m = useMetrics();
+  const user = useUser();
+  const [reporting, setReporting] = useState(false);
   const { today, cur, project } = m;
 
   const variance = Math.round(m.progress - m.planned);
@@ -253,7 +256,15 @@ export default function Dashboard({ go }) {
       <PageHead
         title={project.name || t('nav_dashboard')}
         subtitle={[project.address, fmtDate(today, lang, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })].filter(Boolean).join(' · ')}
-      />
+      >
+        {user.role === 'manager' && (
+          <button className="btn" onClick={() => setReporting(true)}>
+            <Icon name="printer" size={16} />
+            {t('pr_title')}
+          </button>
+        )}
+      </PageHead>
+      {reporting && <ProjectReport onClose={() => setReporting(false)} />}
 
       <div className="grid dash-top">
         <Glass className="hero">

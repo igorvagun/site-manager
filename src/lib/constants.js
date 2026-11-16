@@ -25,7 +25,7 @@ export function useOptions() {
       categories: opts(CATEGORIES, 'cat_'),
       attendance: opts(Object.keys(ATTENDANCE), 'att_'),
       issueStatus: opts(Object.keys(ISSUE_STATUS), 'is_'),
-      issueType: opts(['punch', 'rfi'], 'it_'),
+      issueType: opts(['punch', 'rfi', 'action'], 'it_'),
       priority: opts(Object.keys(PRIORITY), 'pr_'),
       safetyType: opts(Object.keys(SAFETY_TYPES), 'sf_'),
       safetyStatus: opts(['open', 'closed'], 'ss_'),

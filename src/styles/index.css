@@ -4765,3 +4765,125 @@ input[type='range']:disabled {
   color: var(--text2);
   margin-top: 2px;
 }
+
+/* ───────── Meetings, lost days, project report ───────── */
+.c-sand { --i1: #f0dcae; --i2: #b8862b; }
+small.block {
+  display: block;
+  color: var(--text2);
+}
+.job.meeting header small {
+  display: block;
+  color: var(--text2);
+  margin-top: 2px;
+}
+.mt-actions tr.done td:first-child {
+  text-decoration: line-through;
+  color: var(--text2);
+}
+.mt-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.mt-tools {
+  white-space: nowrap;
+  text-align: end;
+}
+.mt-tools > * {
+  vertical-align: middle;
+}
+.mt-add {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.mt-add .grow {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.pr-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pr-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.pr-kpis div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+}
+.pr-kpis span,
+.pr-kpis small {
+  font-size: 12px;
+  color: var(--text2);
+}
+.pr-kpis b {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.pr-note {
+  padding: 10px 12px;
+  border-inline-start: 3px solid #14161f;
+  background: #f4f5f9;
+}
+.pr-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.project-report section {
+  break-inside: avoid;
+}
+@media (max-width: 640px) {
+  .pr-kpis,
+  .pr-two {
+    grid-template-columns: 1fr 1fr;
+  }
+  .pr-two {
+    grid-template-columns: 1fr;
+  }
+}
+.report > * {
+  min-width: 0;
+}
+.report section {
+  overflow-x: auto;
+}
+@media (max-width: 640px) {
+  .report {
+    padding: 18px 14px;
+  }
+  .mt-actions th:nth-child(2),
+  .mt-actions td:nth-child(2) {
+    max-width: 90px;
+  }
+}
+@media print {
+  .report section {
+    overflow: visible;
+  }
+}
+.mt-add select,
+.mt-add input[type='date'] {
+  flex: 1 1 130px;
+  min-width: 0;
+  max-width: 100%;
+}
+.modal-body > .report,
+.modal-body > .mt-add {
+  max-width: 100%;
+}
+/* A dialog never grows wider than the screen, whatever is inside it. */
+.overlay {
+  grid-template-columns: minmax(0, 1fr);
+}
