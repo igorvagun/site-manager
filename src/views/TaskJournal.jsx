@@ -108,6 +108,8 @@ function TaskDetail({ task, canEdit, onClose, onEdit }) {
             )}
           </div>
 
+          {/* Pay rates are for managers and foremen only. */}
+          {canEdit && (
           <section>
             <h4>
               {t('labor_cost')} <small title={t('labor_cost_hint')}>ⓘ</small>
@@ -134,6 +136,7 @@ function TaskDetail({ task, canEdit, onClose, onEdit }) {
             )}
             <small className="muted">{t('labor_cost_hint')}</small>
           </section>
+          )}
 
           <section>
             <h4>{t('description')}</h4>
@@ -314,10 +317,12 @@ export default function TaskJournal() {
                     <span>{t('labor_hours')}</span>
                     <b>{fmtHours(labor.hours)}</b>
                   </div>
-                  <div>
-                    <span>{t('labor_cost')}</span>
-                    <b>{fmtMoney(labor.cost, cur)}</b>
-                  </div>
+                  {canEdit && (
+                    <div>
+                      <span>{t('labor_cost')}</span>
+                      <b>{fmtMoney(labor.cost, cur)}</b>
+                    </div>
+                  )}
                 </div>
                 <footer>
                   <button className="btn small" onClick={() => setOpenId(x.id)}>

@@ -194,9 +194,25 @@ export function Modal({ title, onClose, children, footer, wide }) {
   const ref = useRef(null);
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key !== 'Escape') return;
       const all = document.querySelectorAll('.overlay');
-      if (all[all.length - 1]?.contains(ref.current)) onClose();
+      if (!all[all.length - 1]?.contains(ref.current)) return; // only the top-most dialog reacts
+      if (e.key === 'Escape') return onClose();
+      if (e.key !== 'Tab') return;
+      // Keep keyboard focus inside the dialog.
+      const items = [...ref.current.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]):not([hidden]), select:not([disabled]), textarea:not([disabled]), audio[controls], video[controls]')].filter((el) => el.offsetParent !== null);
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!ref.current.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      } else if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', onKey);
     const prev = document.activeElement;

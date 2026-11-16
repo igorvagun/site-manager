@@ -459,7 +459,7 @@ Object.assign(D, {
   timeclock_sub: ['כניסה ויציאה ממשמרת וטבלת שעות לכל העובדים', 'Clock in and out, and the hours table for all workers'],
   start_shift: ['כניסה למשמרת', 'Start shift'],
   end_shift: ['יציאה ממשמרת', 'End shift'],
-  on_shift_since: ['במשמרת מ-', 'On shift since'],
+  on_shift_since: ['במשמרת מאז', 'On shift since'],
   shift_finished: ['המשמרת הסתיימה', 'Shift finished'],
   shift_not_started: ['טרם נכנס', 'Not clocked in'],
   on_shift_now: ['במשמרת כעת', 'On shift now'],

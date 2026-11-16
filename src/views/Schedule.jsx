@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '../lib/i18n';
-import { useData, addRow, updateRow, removeRow, notify } from '../lib/store';
+import { useData, useUser, addRow, updateRow, removeRow, notify } from '../lib/store';
 import { useOptions, TASK_STATUS } from '../lib/constants';
 import { TEMPLATES } from '../lib/templates';
 import { Glass, Badge, Segmented, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox } from '../components/ui';
@@ -150,6 +150,8 @@ export default function Schedule() {
   const [floor, setFloor] = useState('');
   const [editing, setEditing] = useState(null);
   const [templating, setTemplating] = useState(false);
+  // Workers can read the schedule; planning and money are for managers and foremen.
+  const canEdit = useUser().role !== 'worker';
   const today = todayISO();
 
   const all = useMemo(() => [...data.tasks].sort((a, b) => (a.position || 0) - (b.position || 0)), [data.tasks]);
@@ -189,7 +191,9 @@ export default function Schedule() {
 
   return (
     <>
-      <PageHead title={t('nav_schedule')} subtitle={`${visible.length} ${t('tasks_shown')} · ${fmtMoney(visible.reduce((s, x) => s + taskBudget(x), 0), cur)}`}>
+      <PageHead title={t('nav_schedule')} subtitle={`${visible.length} ${t('tasks_shown')}${canEdit ? ` · ${fmtMoney(visible.reduce((s, x) => s + taskBudget(x), 0), cur)}` : ''}`}>
+        {canEdit && (
+          <>
         <button
           className="btn"
           onClick={() =>
@@ -217,6 +221,8 @@ export default function Schedule() {
           <Icon name="plus" size={16} />
           {t('new_task')}
         </button>
+          </>
+        )}
       </PageHead>
 
       <Glass className="toolbar">
@@ -246,7 +252,7 @@ export default function Schedule() {
       </Glass>
 
       {mode === 'gantt' ? (
-        <Gantt tasks={visible} onEdit={setEditing} />
+        <Gantt tasks={visible} onEdit={canEdit ? setEditing : () => {}} />
       ) : visible.length === 0 ? (
         <Glass><Empty icon="calendar" text={t('no_tasks')} /></Glass>
       ) : (
@@ -259,21 +265,21 @@ export default function Schedule() {
             const clash = dependencyConflict(x, all);
             return (
               <Glass className="task-row" key={x.id}>
-                {!filtered && (
+                {!filtered && canEdit && (
                   <div className="reorder">
                     <IconButton icon="up" label={t('move_up')} size={14} onClick={() => move(x, -1)} disabled={all.indexOf(x) === 0} />
                     <IconButton icon="down" label={t('move_down')} size={14} onClick={() => move(x, 1)} disabled={all.indexOf(x) === all.length - 1} />
                   </div>
                 )}
                 <div className="task-main">
-                  <button className="task-title" onClick={() => setEditing({ ...x, depends_on: x.depends_on || '' })}>{x.name}</button>
+                  <button className="task-title" onClick={() => canEdit && setEditing({ ...x, depends_on: x.depends_on || '' })}>{x.name}</button>
                   <div className="task-meta">
                     <span className="tag">{o.floorLabel(x.floor)}</span>
                     <span className={late ? 'warn-text' : ''}>
                       {fmtDate(x.start_date, lang)} – {fmtDate(x.end_date, lang)}
                     </span>
                     <span>{days} {t('work_days')}</span>
-                    <span>{fmtMoney(x.daily_cost, cur)}/{t('day')} · {fmtMoney(taskBudget(x), cur)}</span>
+                    {canEdit && <span>{fmtMoney(x.daily_cost, cur)}/{t('day')} · {fmtMoney(taskBudget(x), cur)}</span>}
                     {(late || behind) && <Badge tone="red">{late ? t('past_due') : t('behind')}</Badge>}
                   </div>
                   {dep && (
@@ -284,7 +290,7 @@ export default function Schedule() {
                       {clash && (
                         <>
                           <Badge tone="red">{t('dep_conflict')}</Badge>
-                          <button className="btn small" onClick={() => shift(x)}>
+                          <button className="btn small" onClick={() => shift(x)} hidden={!canEdit}>
                             <Icon name="arrow" size={13} className="flip-rtl" />
                             {t('shift_schedule')}
                           </button>
@@ -301,7 +307,7 @@ export default function Schedule() {
                 </div>
                 <div className="task-progress">
                   <input
-                    type="range" min={0} max={100} step={5} value={x.progress || 0}
+                    type="range" min={0} max={100} step={5} value={x.progress || 0} disabled={!canEdit}
                     aria-label={t('progress')}
                     onChange={(e) => patch(x, { progress: Number(e.target.value) })}
                     style={{ '--pct': (x.progress || 0) + '%' }}
@@ -310,13 +316,13 @@ export default function Schedule() {
                   <b>{x.progress || 0}%</b>
                 </div>
                 <label className={`status-select badge tone-${TASK_STATUS[x.status] || 'neutral'}`}>
-                  <select value={x.status} onChange={(e) => patch(x, { status: e.target.value })} aria-label={t('status')}>
+                  <select value={x.status} onChange={(e) => patch(x, { status: e.target.value })} aria-label={t('status')} disabled={!canEdit}>
                     {o.taskStatus.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                   </select>
                   {t('st_' + x.status)}
                   <Icon name="down" size={12} />
                 </label>
-                <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...x, depends_on: x.depends_on || '' })} />
+                {canEdit && <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...x, depends_on: x.depends_on || '' })} />}
               </Glass>
             );
           })}

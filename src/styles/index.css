@@ -10,7 +10,7 @@
   --bg: #f5f6fb;
   --text: #0b0c10;
   --text2: rgba(40, 42, 54, 0.72);
-  --text3: rgba(40, 42, 54, 0.5);
+  --text3: rgba(40, 42, 54, 0.64);
   --glass: rgba(255, 255, 255, 0.46);
   --glass-2: rgba(255, 255, 255, 0.62);
   --glass-solid: rgba(246, 248, 252, 0.86);
@@ -3508,7 +3508,7 @@ h4 {
   height: 17px;
   padding: 0 4px;
   border-radius: 99px;
-  background: #ff5a4f;
+  background: #d92d20;
   color: #fff;
   font-size: 10.5px;
   font-weight: 700;
@@ -4155,5 +4155,42 @@ button.pin-tag:hover {
   }
   .cal-more {
     display: none;
+  }
+}
+
+/* ───────── Quality pass ───────── */
+.demo-user {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.demo-user .grow {
+  min-width: 0;
+  flex: 1 1 120px;
+}
+.demo-user .grow small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.login-card {
+  max-width: 100%;
+  min-width: 0;
+}
+.login-card form,
+.demo-accounts {
+  min-width: 0;
+}
+
+input[type='range']:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+.status-select:has(select:disabled) .icon {
+  display: none;
+}
+@media (max-width: 520px) {
+  .job-facts b,
+  .task-times b {
+    white-space: normal;
+    font-size: 13px;
   }
 }

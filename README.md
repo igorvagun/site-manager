@@ -1,71 +1,54 @@
 # Site Manager
 
-Construction site management app with an Apple-style translucent ("liquid glass") interface.
-Hebrew (RTL) and English, light and dark themes, desktop and mobile.
+Construction site management app with an Apple-style translucent interface in light pastel colours.
+Hebrew (RTL), English and Russian; desktop and phone; installable and usable offline.
 
 ## How it is organised
 
-1. **Sign in.** The app recognises the person's role (project manager, foreman, worker) and shows only what that role may use.
-2. **Home desktop.** App icons, like a phone home screen: one icon per project, plus New project, Positions (job titles with default hourly rates) and Settings.
-3. **Project desktop.** Each project has its own wallpaper and accent colour (changeable in Project settings) and its own set of sub-apps and data.
+1. **Sign in.** The app recognises the person's role — project manager, foreman or worker — and shows only what that role may use.
+2. **Home desktop.** App icons, like a phone home screen: one icon per project, plus New project, Accounts, Positions and Settings.
+3. **Project desktop.** Each project has its own wallpaper and accent colour, its own data, and its own set of sub-apps. Icons carry a count of things needing attention.
 
-| Project sub-app | What it does |
+### Project sub-apps
+
+| App | What it does |
 | --- | --- |
-| Dashboard | Progress vs plan, budget, crew, alerts, cumulative-spend chart, next 7 days |
-| Team | Workers of this project with full details, daily attendance and hours |
-| Schedule | Task list with inline progress/status, priority reordering, Gantt timeline |
-| Daily Log | Site diary: weather, crew, work done, delays, photos, print |
-| Budget | Budget vs actual by category, expenses, change orders, forecast |
-| Issues | Punch list and RFIs on a drag-and-drop board |
-| Safety | Inspections with checklist, toolbox talks, hazards, incidents |
-| Materials | On-site stock, minimum levels, deliveries |
-| Drawings | Library of project drawings (images, PDF) with a zooming viewer |
-| Task journal | Start/finish marks, labour cost from hourly rates, attached drawing, voice and video notes, a chat per task |
-| Time clock | Workers clock in and out; managers see today, the weekly hours table and labour cost |
-| Receipts | Photograph a receipt and save it as a project expense (AI reading when connected) |
-| To-do | The manager's private checklist: lists, priorities, due dates, sub-steps, pinning |
-| Contacts | Directory of contractors, engineers, architects, suppliers; call, WhatsApp or in-app chat |
-| AI analyst | Day / week / month statistics from all tasks, chats and shifts; written conclusions when AI is connected |
+| Dashboard | Progress vs plan, handover forecast at the current pace, budget, crew, alerts, spend chart, next 7 days |
+| Team | Workers with full details, daily attendance, chat with each worker |
+| Schedule | Task list and Gantt, priorities, dependencies with one-tap shifting, task templates |
 | Calendar | Every dated item of the project on a month grid |
-| Equipment | Machinery on site, rentals with running cost, return dates and inspections |
-| Project settings | Look (wallpaper, accent), details, delete project |
-
-Chats (per task, per worker, per contact) support text, voice notes, photos, video, files, replies and reactions.
-A bell on the desktop notifies managers when workers clock in or out, when tasks start or finish, and of new messages;
-each kind can be switched off in Settings.
-
-Hebrew (RTL) and English, light and dark themes, desktop and mobile.
-
-## How it is organised
-
-1. **Sign in.** The app recognises the person's role (project manager, foreman, worker) and shows only what that role may use.
-2. **Home desktop.** App icons, like a phone home screen: one icon per project, plus New project, Positions (job titles with default hourly rates) and Settings.
-3. **Project desktop.** Each project has its own wallpaper and accent colour (changeable in Project settings) and its own set of sub-apps and data.
-
-| Project sub-app | What it does |
-| --- | --- |
-| Dashboard | Progress vs plan, budget, crew, alerts, cumulative-spend chart, next 7 days |
-| Team | Workers of this project with full details, daily attendance and hours |
-| Schedule | Task list with inline progress/status, priority reordering, Gantt timeline |
-| Daily Log | Site diary: weather, crew, work done, delays, photos, print |
+| Daily Log | Site diary pre-drafted from the day's tasks; photos; printable daily report |
 | Budget | Budget vs actual by category, expenses, change orders, forecast |
-| Issues | Punch list and RFIs on a drag-and-drop board |
+| Issues | Punch list and RFIs on a drag-and-drop board; issues can be pinned to a drawing |
 | Safety | Inspections with checklist, toolbox talks, hazards, incidents |
 | Materials | On-site stock, minimum levels, deliveries |
-| Drawings | Library of project drawings (images, PDF) with a zooming viewer |
-| Task journal | Start/finish marks, labour cost from hourly rates, attached drawing, voice and video notes, a chat per task |
-| Time clock | Workers clock in and out; managers see today, the weekly hours table and labour cost |
+| Equipment | Machinery on site, rentals with running cost, return dates, inspections |
+| Drawings | Library of drawings (images, PDF), zooming viewer, issue pins |
+| Task journal | Start/finish marks, labour cost from hourly rates and clocked hours, attached drawing, voice and video notes, a chat per task |
+| Time clock | Workers clock in and out; managers see today, the weekly table and a monthly payroll estimate |
 | Receipts | Photograph a receipt and save it as a project expense (AI reading when connected) |
 | To-do | The manager's private checklist: lists, priorities, due dates, sub-steps, pinning |
-| Contacts | Directory of contractors, engineers, architects, suppliers; call, WhatsApp or in-app chat |
-| AI analyst | Day / week / month statistics from all tasks, chats and shifts; written conclusions when AI is connected |
-| Equipment | Machinery on site, rentals with running cost, return dates and inspections |
+| Contacts | Contractors, engineers, architects, suppliers; call, WhatsApp or in-app chat |
+| AI analyst | Day / week / month statistics from tasks, chats and shifts; written conclusions when AI is connected |
 | Project settings | Look (wallpaper, accent), details, delete project |
 
-Planned next (shown as "Soon" on the desktop): Drawings library, Task journal with per-task chat
-and voice/video notes, Time clock, Receipt capture, Manager to-do, Contacts directory.
+### Across the app
 
-Hebrew (RTL) and English, light and dark, desktop and mobile. Lists export to CSV.
+- **Search** (magnifier or Ctrl/Cmd+K) finds projects, apps, tasks, people, drawings, issues and materials.
+- **Notifications** (bell) for clock-ins, tasks started or finished, and new messages; each kind can be switched off.
+- **My day** on the project desktop: clock in/out and your own tasks.
+- **Chats** — per task, per worker, per contact — with text, voice notes, photos, video, files, replies and reactions.
+- **Undo** for a few seconds after any delete. Lists export to CSV.
+
+### Roles
+
+| | Manager | Foreman | Worker |
+| --- | --- | --- | --- |
+| Create projects, accounts, positions | yes | no | no |
+| Budget, to-do, AI analyst, project settings | yes | no | no |
+| Team, materials, equipment, receipts, contacts, dashboard | yes | yes | no |
+| Edit the schedule, see costs and pay rates | yes | yes | no |
+| Own tasks, time clock, drawings, issues, safety, daily log, calendar | yes | yes | yes |
 
 ## Run
 
@@ -74,17 +57,22 @@ npm install
 npm run dev
 ```
 
-With no configuration the app runs in **local mode**: data is stored in the browser and
-starts with demo content. Three demo accounts are listed on the sign-in screen
-(password `demo`). Local mode is a single-browser demo — its sign-in is not real security.
+With no configuration the app runs in **local mode**: data is stored in this browser and starts with demo
+content in the language chosen at first launch. Demo accounts are listed on the sign-in screen (password `demo`).
+Local mode is a single-browser demo: its sign-in and role limits are not real security.
 
-## Cloud sync (optional)
+`npm run build` produces the production build, which registers a service worker so the app can be installed
+and opened offline.
+
+## Cloud sync (optional, not yet tested against a live project)
 
 1. Create a Supabase project and run `supabase/schema.sql` in the SQL editor.
-2. Copy `.env.example` to `.env.local` and fill in the URL and anon key.
-3. Restart the app, then use Settings → "Load demo data" if you want sample content.
+2. Copy `.env.example` to `.env.local` and fill in the project URL and anon key.
+3. Create a Supabase Auth user for each row in the `users` table (same email).
+4. Restart the app; Settings → "Load demo data" adds sample content.
 
-Read the security note at the top of `supabase/schema.sql` before putting real data in it.
+Read the security note at the top of `supabase/schema.sql` first: its policies are open to anyone with the
+anon key and must be tightened before real data goes in.
 
 ## AI features (optional)
 
@@ -102,3 +90,9 @@ Without it the app still works: receipts are typed in by hand and the analyst pa
 
 Drawings, recordings and photos are stored in the browser (IndexedDB) in local mode and in the Supabase Storage
 bucket `files` in cloud mode. JSON backups contain data only, not these files.
+
+## Estimates to check against your own rules
+
+- **Labour cost of a task:** hours between start and finish × each worker's hourly rate, using the time clock, or a 07:00–16:00 day when there is no entry.
+- **Payroll:** hours above 9 in a day count as overtime — the first 2 at 125%, the rest at 150%.
+- **Handover forecast:** project length ÷ (actual progress ÷ planned progress).
