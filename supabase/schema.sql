@@ -1,13 +1,19 @@
--- Create tasks table
+-- Site Manager — Supabase schema.
+-- Safe to re-run. After running, open the app → Settings → "Load demo data" to seed sample content.
+--
+-- SECURITY NOTE: the policies below give the public anon key full read/write access,
+-- matching the original single-table setup. Anyone with the app URL can change data.
+-- Before real use, enable Supabase Auth and replace them with `TO authenticated` policies.
+
 CREATE TABLE IF NOT EXISTS tasks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
-  floor TEXT NOT NULL,
+  floor TEXT NOT NULL DEFAULT '',
   status TEXT NOT NULL DEFAULT 'pending',
   progress INTEGER NOT NULL DEFAULT 0,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
-  daily_cost INTEGER NOT NULL DEFAULT 0,
+  daily_cost NUMERIC NOT NULL DEFAULT 0,
   workers TEXT[] DEFAULT ARRAY[]::TEXT[],
   notes TEXT DEFAULT '',
   position INTEGER NOT NULL DEFAULT 0,
@@ -15,159 +21,133 @@ CREATE TABLE IF NOT EXISTS tasks (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable RLS
-ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
+CREATE TABLE IF NOT EXISTS project (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT DEFAULT '',
+  address TEXT DEFAULT '',
+  client TEXT DEFAULT '',
+  manager TEXT DEFAULT '',
+  start_date DATE,
+  end_date DATE,
+  currency TEXT DEFAULT '₪',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- RLS Policy: Allow anonymous users (anon role) to perform all operations
-CREATE POLICY "Allow all operations for anon" ON tasks
-  FOR ALL
-  USING (TRUE)
-  WITH CHECK (TRUE);
+CREATE TABLE IF NOT EXISTS workers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  role TEXT DEFAULT '',
+  company TEXT DEFAULT '',
+  phone TEXT DEFAULT '',
+  daily_rate NUMERIC NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
--- Insert initial 12 tasks
-INSERT INTO tasks (name, floor, status, progress, start_date, end_date, daily_cost, workers, notes, position)
-VALUES
-  (
-    'עבודות עפר וחפירה',
-    'חוץ',
-    'done',
-    100,
-    '2026-01-05',
-    '2026-01-20',
-    3200,
-    ARRAY['משה', 'אחמד'],
-    '',
-    1
-  ),
-  (
-    'יסודות ורצפת קרקע',
-    'קרקע',
-    'done',
-    100,
-    '2026-01-21',
-    '2026-02-10',
-    4500,
-    ARRAY['יוסי', 'דוד'],
-    '',
-    2
-  ),
-  (
-    'עמודים ושלד קומה א',
-    'א',
-    'done',
-    100,
-    '2026-02-11',
-    '2026-02-25',
-    5100,
-    ARRAY['קרלוס', 'ניר'],
-    '',
-    3
-  ),
-  (
-    'תקרה קומה א',
-    'א',
-    'done',
-    100,
-    '2026-02-26',
-    '2026-03-10',
-    4800,
-    ARRAY['עמיר', 'סמיר'],
-    '',
-    4
-  ),
-  (
-    'עמודים ושלד קומה ב',
-    'ב',
-    'active',
-    65,
-    '2026-03-11',
-    '2026-03-28',
-    5100,
-    ARRAY['יוסי', 'אחמד'],
-    'בטון מוזמן ל-25/3',
-    5
-  ),
-  (
-    'תקרה קומה ב',
-    'ב',
-    'active',
-    20,
-    '2026-03-25',
-    '2026-04-10',
-    4800,
-    ARRAY['משה'],
-    '',
-    6
-  ),
-  (
-    'עמודים ושלד קומה ג',
-    'ג',
-    'pending',
-    0,
-    '2026-04-11',
-    '2026-04-28',
-    5100,
-    ARRAY[]::TEXT[],
-    '',
-    7
-  ),
-  (
-    'תקרה קומה ג',
-    'ג',
-    'pending',
-    0,
-    '2026-04-29',
-    '2026-05-15',
-    4800,
-    ARRAY[]::TEXT[],
-    '',
-    8
-  ),
-  (
-    'קירות חוץ ובידוד',
-    'חוץ',
-    'pending',
-    0,
-    '2026-05-16',
-    '2026-06-10',
-    3900,
-    ARRAY[]::TEXT[],
-    '',
-    9
-  ),
-  (
-    'גמר פנימי קומות',
-    'א',
-    'pending',
-    0,
-    '2026-06-11',
-    '2026-07-20',
-    6200,
-    ARRAY[]::TEXT[],
-    '',
-    10
-  ),
-  (
-    'חשמל ואינסטלציה',
-    'ב',
-    'delayed',
-    30,
-    '2026-03-01',
-    '2026-04-15',
-    2800,
-    ARRAY['דניאל', 'אלי'],
-    'קבלן משנה - עיכוב בחומרים',
-    11
-  ),
-  (
-    'עבודות חוץ ופיתוח',
-    'חוץ',
-    'pending',
-    0,
-    '2026-07-21',
-    '2026-08-31',
-    3500,
-    ARRAY[]::TEXT[],
-    '',
-    12
-  );
+CREATE TABLE IF NOT EXISTS attendance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  worker_id UUID NOT NULL REFERENCES workers(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'present',
+  hours NUMERIC NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS attendance_date_idx ON attendance (date);
+
+CREATE TABLE IF NOT EXISTS logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  date DATE NOT NULL,
+  author TEXT DEFAULT '',
+  weather TEXT DEFAULT 'sunny',
+  temp NUMERIC DEFAULT 0,
+  crew_count INTEGER DEFAULT 0,
+  summary TEXT DEFAULT '',
+  delays TEXT DEFAULT '',
+  photos JSONB DEFAULT '[]'::JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS expenses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  date DATE NOT NULL,
+  category TEXT NOT NULL DEFAULT 'other',
+  description TEXT NOT NULL,
+  vendor TEXT DEFAULT '',
+  amount NUMERIC NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS budget_lines (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category TEXT NOT NULL,
+  planned NUMERIC NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS change_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  number TEXT NOT NULL,
+  title TEXT NOT NULL,
+  amount NUMERIC NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending',
+  date DATE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS issues (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  type TEXT NOT NULL DEFAULT 'punch',
+  title TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  floor TEXT DEFAULT '',
+  assignee TEXT DEFAULT '',
+  priority TEXT NOT NULL DEFAULT 'medium',
+  status TEXT NOT NULL DEFAULT 'open',
+  due_date DATE,
+  photo TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS safety (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  type TEXT NOT NULL DEFAULT 'inspection',
+  date DATE NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  severity TEXT NOT NULL DEFAULT 'low',
+  status TEXT NOT NULL DEFAULT 'closed',
+  reporter TEXT DEFAULT '',
+  checklist JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS materials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  unit TEXT DEFAULT '',
+  qty NUMERIC NOT NULL DEFAULT 0,
+  min_qty NUMERIC NOT NULL DEFAULT 0,
+  supplier TEXT DEFAULT '',
+  location TEXT DEFAULT '',
+  next_delivery DATE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Row level security + realtime for every table.
+DO $$
+DECLARE t TEXT;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['tasks','project','workers','attendance','logs','expenses',
+                           'budget_lines','change_orders','issues','safety','materials']
+  LOOP
+    EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
+    EXECUTE format('DROP POLICY IF EXISTS "Allow all operations for anon" ON %I', t);
+    EXECUTE format('CREATE POLICY "Allow all operations for anon" ON %I FOR ALL USING (TRUE) WITH CHECK (TRUE)', t);
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = t
+    ) AND EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+      EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE %I', t);
+    END IF;
+  END LOOP;
+END $$;

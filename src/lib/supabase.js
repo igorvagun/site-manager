@@ -1,12 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const url = import.meta.env.VITE_SUPABASE_URL;
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    'Missing Supabase credentials. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local'
-  );
-}
+const configured = url && key && !url.includes('your-project') && !key.includes('your-anon-key');
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+// When no credentials are configured the app runs in local mode (browser storage).
+export const supabase = configured ? createClient(url, key) : null;
