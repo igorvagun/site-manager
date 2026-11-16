@@ -5,6 +5,9 @@ import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, ATTENDANCE } from '../lib/constants';
 import { Glass, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox, Stat } from '../components/ui';
 import { ChatModal } from '../components/Chat';
+import ImportDialog from '../components/ImportDialog';
+import { parseNumber } from '../lib/csv';
+import { shiftHours } from '../lib/utils';
 import { todayISO, addDays, fmtDate, fmtMoney, sum, exportCSV } from '../lib/utils';
 
 export default function Team() {
@@ -17,6 +20,7 @@ export default function Team() {
   const [q, setQ] = useState(routeQuery);
   const [editing, setEditing] = useState(null);
   const [chat, setChat] = useState(null);
+  const [importing, setImporting] = useState(false);
 
   const workers = [...data.workers]
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -82,6 +86,10 @@ export default function Team() {
         >
           <Icon name="download" size={16} />
           CSV
+        </button>
+        <button className="btn" onClick={() => setImporting(true)}>
+          <Icon name="upload" size={16} />
+          {t('import_csv')}
         </button>
         <button className="btn primary" onClick={() => setEditing(blankWorker)}>
           <Icon name="plus" size={16} />
@@ -165,6 +173,34 @@ export default function Team() {
         </div>
       )}
 
+      {importing && (
+        <ImportDialog
+          title={`${t('import_csv')} — ${t('nav_team')}`}
+          sample={'Name,Position,Company,Phone,Hourly rate,ID number\nIvan Petrov,Electrician,In-house,050-1234567,95,123456789\n'}
+          fields={[
+            { key: 'name', labelKey: 'full_name', aliases: ['name', 'שם', 'имя', 'фио'], required: true },
+            { key: 'role', labelKey: 'position', aliases: ['role', 'תפקיד', 'должность'] },
+            { key: 'company', labelKey: 'company' },
+            { key: 'phone', labelKey: 'phone', aliases: ['tel', 'mobile'] },
+            { key: 'hourly_rate', labelKey: 'hourly_rate', aliases: ['rate', 'hourly'], parse: parseNumber },
+            { key: 'daily_rate', labelKey: 'daily_rate', aliases: ['daily'], parse: parseNumber },
+            { key: 'id_number', labelKey: 'id_number', aliases: ['id'] },
+            { key: 'email', labelKey: 'email' },
+          ]}
+          onClose={() => setImporting(false)}
+          onImport={async (rows) => {
+            // Skip people already on this project (same name), fill rates from the position when missing.
+            const have = new Set(data.workers.map((w) => w.name.trim().toLowerCase()));
+            for (const r of rows) {
+              if (have.has(r.name.trim().toLowerCase())) continue;
+              have.add(r.name.trim().toLowerCase());
+              const pos = data.positions.find((p) => p.name === r.role);
+              const hourly = r.hourly_rate || pos?.hourly_rate || 0;
+              await addRow('workers', { ...blankWorker, ...r, hourly_rate: hourly, daily_rate: r.daily_rate || Math.round(hourly * shiftHours()), start_date: today, user_id: null, active: true });
+            }
+          }}
+        />
+      )}
       {chat && <ChatModal thread={'worker:' + chat.id} title={chat.name} subtitle={[chat.role, chat.company].filter(Boolean).join(' · ')} onClose={() => setChat(null)} />}
       {editing && (
         <EntityForm
@@ -177,7 +213,7 @@ export default function Team() {
             // Picking a position fills in its default hourly rate when none was typed.
             const pos = data.positions.find((p) => p.name === row.role);
             if (pos && !row.hourly_rate) row.hourly_rate = pos.hourly_rate;
-            if (!row.daily_rate && row.hourly_rate) row.daily_rate = row.hourly_rate * 9;
+            if (!row.daily_rate && row.hourly_rate) row.daily_rate = Math.round(row.hourly_rate * shiftHours());
             editing.id ? updateRow('workers', editing.id, row) : addRow('workers', row);
           }}
           onDelete={

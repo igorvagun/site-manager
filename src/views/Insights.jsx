@@ -3,7 +3,7 @@ import { useI18n } from '../lib/i18n';
 import { useData } from '../lib/store';
 import { aiAvailable, aiCall } from '../lib/ai';
 import { Glass, Card, Icon, Segmented, Stat, Empty, PageHead } from '../components/ui';
-import { todayISO, addDays, toISO, fmtMoney, fmtMoneyFull, fmtHours, hoursBetween, hourlyRate, laborHours, sum } from '../lib/utils';
+import { todayISO, addDays, toISO, fmtMoney, fmtMoneyFull, fmtHours, hoursBetween, hourlyRate, laborHours, sum, workCalendar } from '../lib/utils';
 
 // Everything that happened in the period, gathered from all sub-apps.
 // The numbers shown here are computed locally; the same digest is what the AI agent reads.
@@ -46,7 +46,7 @@ export function buildDigest(data, days) {
   const shiftHours = sum(shifts, (s) => (s.clock_in ? hoursBetween(s.clock_in, s.clock_out || now) : 0));
   const late = shifts.filter((s) => {
     const d = new Date(s.clock_in);
-    return d.getHours() * 60 + d.getMinutes() > 7 * 60 + 10;
+    return d.getHours() * 60 + d.getMinutes() > workCalendar().start * 60 + 10; // more than 10 minutes after the shift starts
   }).length;
   const expenses = data.expenses.filter((e) => dayIn(e.date));
   const logs = data.logs.filter((l) => dayIn(l.date));

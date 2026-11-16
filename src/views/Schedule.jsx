@@ -3,19 +3,16 @@ import { useI18n } from '../lib/i18n';
 import { useData, useUser, addRow, updateRow, removeRow, notify } from '../lib/store';
 import { useOptions, TASK_STATUS } from '../lib/constants';
 import { TEMPLATES } from '../lib/templates';
+import ImportDialog from '../components/ImportDialog';
+import { parseDate, parseNumber } from '../lib/csv';
 import { Glass, Badge, Segmented, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox } from '../components/ui';
-import { todayISO, addDays, diffDays, parseISO, fmtDate, fmtMoney, workingDays, taskBudget, plannedProgress, exportCSV, clamp, toISO } from '../lib/utils';
+import { todayISO, addDays, diffDays, parseISO, fmtDate, fmtMoney, workingDays, taskBudget, plannedProgress, exportCSV, clamp, toISO, nextWorkday } from '../lib/utils';
 
 // A task that "follows" another must start after it ends.
 export const dependencyOf = (task, tasks) => (task.depends_on ? tasks.find((x) => x.id === task.depends_on && x.id !== task.id) : null);
 export const dependencyConflict = (task, tasks) => {
   const dep = dependencyOf(task, tasks);
   return dep && task.status !== 'done' && task.start_date <= dep.end_date ? dep : null;
-};
-const nextWorkday = (iso) => {
-  let d = addDays(iso, 1);
-  while (parseISO(d).getDay() === 6) d = addDays(d, 1);
-  return d;
 };
 // Move a task to start right after its predecessor, keeping its length, then push on anything that follows it.
 export function shiftPlan(task, tasks) {
@@ -153,6 +150,7 @@ export default function Schedule() {
   // Workers can read the schedule; planning and money are for managers and foremen.
   const canEdit = useUser().role !== 'worker';
   const [savingTpl, setSavingTpl] = useState(false);
+  const [importing, setImporting] = useState(false);
   // Built-in templates plus the ones saved from real schedules: key → [[name, working days, cost per day], …]
   const custom = data.templates || [];
   const templateSteps = (key) => (TEMPLATES[key] ? TEMPLATES[key].map(([k, d, c]) => [t(k), d, c]) : (custom.find((x) => x.id === key)?.steps || []).map((x) => [x.name, x.days, x.cost]));
@@ -220,6 +218,10 @@ export default function Schedule() {
         <button className="btn" onClick={() => setTemplating(true)}>
           <Icon name="layers" size={16} />
           {t('from_template')}
+        </button>
+        <button className="btn" onClick={() => setImporting(true)}>
+          <Icon name="upload" size={16} />
+          {t('import_csv')}
         </button>
         <button className="btn" onClick={() => setSavingTpl(true)} disabled={visible.length === 0} title={t('save_template_hint')}>
           <Icon name="upload" size={16} />
@@ -337,6 +339,28 @@ export default function Schedule() {
         </div>
       )}
 
+      {importing && (
+        <ImportDialog
+          title={`${t('import_csv')} — ${t('nav_schedule')}`}
+          sample={'Task name,Start,End,Daily cost,Notes\nRoof waterproofing,01/03/2027,12/03/2027,3200,Two layers\n'}
+          fields={[
+            { key: 'name', labelKey: 'task_name', aliases: ['task', 'name', 'משימה', 'задача', 'название'], required: true },
+            { key: 'start_date', labelKey: 'start', aliases: ['start date', 'from'], required: true, parse: parseDate },
+            { key: 'end_date', labelKey: 'end', aliases: ['end date', 'finish', 'to'], required: true, parse: parseDate },
+            { key: 'daily_cost', labelKey: 'daily_cost', aliases: ['cost'], parse: parseNumber },
+            { key: 'notes', labelKey: 'notes' },
+          ]}
+          onClose={() => setImporting(false)}
+          onImport={async (rows) => {
+            let pos = Math.max(0, ...all.map((x) => x.position || 0));
+            for (const r of rows) {
+              // A row whose dates are the wrong way round is imported as a one-day task rather than dropped silently.
+              const end = r.end_date >= r.start_date ? r.end_date : r.start_date;
+              await addRow('tasks', { ...blank, ...r, end_date: end, depends_on: null, description: '', media: [], drawing_id: null, position: ++pos });
+            }
+          }}
+        />
+      )}
       {savingTpl && (
         <EntityForm
           title={t('save_template')}

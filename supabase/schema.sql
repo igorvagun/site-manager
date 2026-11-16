@@ -37,6 +37,11 @@ CREATE TABLE IF NOT EXISTS projects (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Per-project working calendar: rest days (0 = Sunday … 6 = Saturday) and the standard shift.
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS rest_days JSONB DEFAULT '[6]'::JSONB;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS shift_start TEXT DEFAULT '07:00';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS shift_end TEXT DEFAULT '16:00';
+
 -- App profiles. `email` must match the Supabase Auth account; `role` decides what the person sees.
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

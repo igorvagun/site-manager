@@ -23,6 +23,7 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 | Safety | Inspections with checklist, toolbox talks, hazards, incidents |
 | Materials | On-site stock, minimum levels, deliveries |
 | Equipment | Machinery on site, rentals with running cost, return dates, inspections |
+| Photos | Every photo from daily logs, issues and task chats, by date |
 | Drawings | Library of drawings (images, PDF), zooming viewer, issue pins |
 | Task journal | Start/finish marks, labour cost from hourly rates and clocked hours, attached drawing, voice and video notes, a chat per task |
 | Time clock | Workers clock in and out; managers see today, the weekly table and a monthly payroll estimate |
@@ -38,7 +39,8 @@ Hebrew (RTL), English and Russian; desktop and phone; installable and usable off
 - **Notifications** (bell) for clock-ins, tasks started or finished, and new messages; each kind can be switched off.
 - **My day** on the project desktop: clock in/out and your own tasks.
 - **Chats** — per task, per worker, per contact — with text, voice notes, photos, video, files, replies and reactions.
-- **Undo** for a few seconds after any delete. Lists export to CSV.
+- **Undo** for a few seconds after any delete. Lists export to CSV; workers and tasks can be imported from CSV.
+- **Working calendar** per project (rest days, standard shift) in Project settings; all date and cost maths follows it.
 
 ### Roles
 
@@ -94,6 +96,6 @@ bucket `files` in cloud mode. JSON backups contain data only, not these files.
 
 ## Estimates to check against your own rules
 
-- **Labour cost of a task:** hours between start and finish × each worker's hourly rate, using the time clock, or a 07:00–16:00 day when there is no entry.
-- **Payroll:** hours above 9 in a day count as overtime — the first 2 at 125%, the rest at 150%.
+- **Labour cost of a task:** hours between start and finish × each worker's hourly rate, using the time clock, or the project's standard shift when there is no entry.
+- **Payroll:** hours above the project's standard shift in a day count as overtime — the first 2 at 125%, the rest at 150%.
 - **Handover forecast:** project length ÷ (actual progress ÷ planned progress).

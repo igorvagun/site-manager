@@ -3,7 +3,7 @@ import { useStore, SCOPED } from '../lib/store';
 import { nav } from '../lib/nav';
 import { computeMetrics } from './Dashboard';
 import { Glass, Badge, Meter, Empty, PageHead, Stat, Icon } from '../components/ui';
-import { fmtDate, fmtMoney, sum, exportCSV } from '../lib/utils';
+import { fmtDate, fmtMoney, sum, exportCSV, setWorkCalendar } from '../lib/utils';
 
 // All projects side by side, with the same numbers each project's dashboard shows.
 export default function Overview() {
@@ -12,10 +12,12 @@ export default function Overview() {
   const rows = data.projects.map((p) => {
     const scoped = { project: [p] };
     SCOPED.forEach((c) => (scoped[c] = data[c].filter((r) => r.project_id === p.id)));
+    setWorkCalendar(p); // each project is measured with its own working days
     const m = computeMetrics(scoped);
     const variance = Math.round(m.progress - m.planned);
     return { p, m, variance, tone: variance >= -3 ? 'green' : variance >= -10 ? 'orange' : 'red', budgetPct: m.budget ? (m.spent / m.budget) * 100 : 0 };
   });
+  setWorkCalendar(null);
   const cur = rows[0]?.m.cur || '₪';
 
   return (

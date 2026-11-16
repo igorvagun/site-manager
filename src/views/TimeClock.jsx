@@ -3,7 +3,7 @@ import { useI18n } from '../lib/i18n';
 import { useData, useUser, updateRow, removeRow, notify } from '../lib/store';
 import { clockIn, clockOut, syncAttendance } from '../lib/clock';
 import { Glass, Icon, IconButton, Badge, EntityForm, Empty, PageHead, Stat, Segmented } from '../components/ui';
-import { todayISO, addDays, parseISO, fmtDate, fmtTime, fmtMoney, fmtMoneyFull, fmtHours, hoursBetween, hourlyRate, sum, exportCSV, pad } from '../lib/utils';
+import { todayISO, addDays, parseISO, fmtDate, fmtTime, fmtMoney, fmtMoneyFull, fmtHours, hoursBetween, hourlyRate, sum, exportCSV, pad, shiftHours, isRestDay } from '../lib/utils';
 
 const toLocalInput = (ts) => {
   if (!ts) return '';
@@ -48,9 +48,10 @@ export default function TimeClock() {
     const byDay = {};
     data.shifts.filter((s) => s.worker_id === w.id && s.date.startsWith(month)).forEach((s) => (byDay[s.date] = (byDay[s.date] || 0) + hoursOf(s)));
     const dayHours = Object.values(byDay);
-    const regular = sum(dayHours, (h) => Math.min(h, 9));
-    const ot125 = sum(dayHours, (h) => Math.min(Math.max(h - 9, 0), 2));
-    const ot150 = sum(dayHours, (h) => Math.max(h - 11, 0));
+    const std = shiftHours(); // the project's standard shift
+    const regular = sum(dayHours, (h) => Math.min(h, std));
+    const ot125 = sum(dayHours, (h) => Math.min(Math.max(h - std, 0), 2));
+    const ot150 = sum(dayHours, (h) => Math.max(h - std - 2, 0));
     const rate = hourlyRate(w);
     return { w, days: dayHours.length, hours: sum(dayHours), regular, overtime: ot125 + ot150, rate, pay: regular * rate + ot125 * rate * 1.25 + ot150 * rate * 1.5 };
   });
@@ -241,7 +242,7 @@ export default function TimeClock() {
                   </tr>
                 </tbody>
               </table>
-              <p className="table-note">{t('payroll_note')}</p>
+              <p className="table-note">{t('payroll_note').replace('{h}', fmtHours(shiftHours()))}</p>
             </Glass>
           )}
 
@@ -252,7 +253,7 @@ export default function TimeClock() {
                 <tr>
                   <th>{t('full_name')}</th>
                   {days.map((d) => (
-                    <th key={d} className={`num ${d === today ? 'today' : ''} ${parseISO(d).getDay() === 6 ? 'off' : ''}`}>
+                    <th key={d} className={`num ${d === today ? 'today' : ''} ${isRestDay(d) ? 'off' : ''}`}>
                       {fmtDate(d, lang, { weekday: 'short' })}
                       <br />
                       {parseISO(d).getDate()}

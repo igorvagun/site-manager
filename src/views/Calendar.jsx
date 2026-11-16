@@ -4,7 +4,7 @@ import { useData, useUser } from '../lib/store';
 import { PROJECT_APPS } from '../lib/apps';
 import { nav } from '../lib/nav';
 import { Glass, Icon, IconButton, PageHead, Empty } from '../components/ui';
-import { todayISO, toISO, parseISO, fmtDate, pad } from '../lib/utils';
+import { todayISO, toISO, parseISO, fmtDate, pad, isRestDay } from '../lib/utils';
 
 // Everything with a date, from every app of the project, on one month grid.
 export default function Calendar({ project }) {
@@ -92,7 +92,7 @@ export default function Calendar({ project }) {
         <Glass className="cal">
           <div className="cal-head">
             {cells.slice(0, 7).map((d) => (
-              <span key={d.getDay()} className={d.getDay() === 6 ? 'off' : ''}>
+              <span key={d.getDay()} className={isRestDay(d) ? 'off' : ''}>
                 {fmtDate(toISO(d), lang, { weekday: 'short' })}
               </span>
             ))}
@@ -105,7 +105,7 @@ export default function Calendar({ project }) {
               return (
                 <button
                   key={iso}
-                  className={`cal-day ${other ? 'other' : ''} ${iso === today ? 'today' : ''} ${iso === day ? 'on' : ''} ${d.getDay() === 6 ? 'off' : ''}`}
+                  className={`cal-day ${other ? 'other' : ''} ${iso === today ? 'today' : ''} ${iso === day ? 'on' : ''} ${isRestDay(d) ? 'off' : ''}`}
                   onClick={() => setDay(iso)}
                   aria-label={`${fmtDate(iso, lang, { day: 'numeric', month: 'long' })}, ${list.length} ${t('cal_events')}`}
                   aria-pressed={iso === day}

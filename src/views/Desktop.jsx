@@ -10,7 +10,7 @@ import { Icon, IconButton, Glass, Ring, EntityForm } from '../components/ui';
 import { useMetrics } from './Dashboard';
 import { nav } from '../lib/nav';
 import Notifications from '../components/Notifications';
-import { todayISO, addDays, fmtDate, fmtTime, fmtMoney, fmtHours, hoursBetween, sum, taskBudget, locale } from '../lib/utils';
+import { todayISO, addDays, fmtDate, fmtTime, fmtMoney, fmtHours, hoursBetween, sum, taskBudget, locale, setWorkCalendar } from '../lib/utils';
 
 export function AppIcon({ icon, color, label, onClick, soon, badge, accent }) {
   const { t } = useI18n();
@@ -51,6 +51,7 @@ function PortfolioWidget({ projects }) {
       <h3>{t('my_projects')}</h3>
       {projects.length === 0 && <p className="muted">{t('no_projects')}</p>}
       {projects.slice(0, 4).map((p) => {
+        setWorkCalendar(p);
         const tasks = data.tasks.filter((x) => x.project_id === p.id);
         const w = sum(tasks, taskBudget) || 1;
         const pct = Math.round(sum(tasks, (x) => taskBudget(x) * (x.progress || 0)) / w);

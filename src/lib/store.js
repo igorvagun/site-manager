@@ -1,7 +1,7 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { supabase } from './supabase';
 import { buildSeed } from './seed';
-import { uid } from './utils';
+import { uid, setWorkCalendar } from './utils';
 
 // Collections shared by the whole account vs. rows that belong to one project.
 export const GLOBAL = ['users', 'positions', 'projects', 'templates'];
@@ -333,6 +333,8 @@ export function useData() {
     GLOBAL.forEach((c) => (out[c] = data[c]));
     SCOPED.forEach((c) => (out[c] = data[c].filter((r) => r.project_id === projectId)));
     out.project = data.projects.filter((p) => p.id === projectId);
+    // Date maths in every view follows this project's working days and shift.
+    setWorkCalendar(out.project[0]);
     return out;
   }, [data, projectId]);
 }

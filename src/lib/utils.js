@@ -1,5 +1,33 @@
 export const LOCALES = { he: 'he-IL', en: 'en-GB', ru: 'ru-RU' };
 export const locale = (lang) => LOCALES[lang] || 'en-GB';
+// Working calendar of the project currently being computed: rest days (0 = Sunday … 6 = Saturday)
+// and the standard shift. Set from the open project; defaults to Sunday–Friday, 07:00–16:00.
+const DEFAULT_CAL = { rest: [6], start: 7, end: 16 };
+let cal = DEFAULT_CAL;
+const hm = (v, fallback) => {
+  if (typeof v === 'number') return v;
+  const m = /^(\d{1,2}):(\d{2})$/.exec(v || '');
+  return m ? Number(m[1]) + Number(m[2]) / 60 : fallback;
+};
+export function setWorkCalendar(project) {
+  if (!project) return (cal = DEFAULT_CAL);
+  const rest = Array.isArray(project.rest_days) ? project.rest_days.map(Number).filter((n) => n >= 0 && n <= 6) : DEFAULT_CAL.rest;
+  const start = hm(project.shift_start, DEFAULT_CAL.start);
+  const end = hm(project.shift_end, DEFAULT_CAL.end);
+  // Never allow a week with no working day, or a shift that ends before it starts.
+  cal = { rest: rest.length < 7 ? rest : DEFAULT_CAL.rest, start, end: end > start ? end : start + 9 };
+  return cal;
+}
+export const workCalendar = () => cal;
+export const isRestDay = (d) => cal.rest.includes((typeof d === 'string' ? parseISO(d) : d).getDay());
+export const shiftHours = () => cal.end - cal.start;
+export const nextWorkday = (iso) => {
+  let d = addDays(iso, 1);
+  for (let i = 0; i < 7 && isRestDay(d); i++) d = addDays(d, 1);
+  return d;
+};
+const at = (day, hours) => new Date(day.getFullYear(), day.getMonth(), day.getDate(), Math.floor(hours), Math.round((hours % 1) * 60));
+
 export const pad = (n) => String(n).padStart(2, '0');
 export const toISO = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 export const todayISO = () => toISO(new Date());
@@ -18,7 +46,7 @@ export const uid = () =>
     ? crypto.randomUUID()
     : 'xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx'.replace(/x/g, () => ((Math.random() * 16) | 0).toString(16));
 
-// Working week: Sunday–Friday (Saturday off).
+// Working days between two dates, by the project's working calendar.
 export function workingDays(start, end) {
   if (!start || !end) return 0;
   const s = parseISO(start);
@@ -27,7 +55,7 @@ export function workingDays(start, end) {
   let count = 0;
   const cur = new Date(s);
   while (cur <= e) {
-    if (cur.getDay() !== 6) count++;
+    if (!cal.rest.includes(cur.getDay())) count++;
     cur.setDate(cur.getDate() + 1);
   }
   return count;
@@ -110,14 +138,11 @@ export const fmtDateTime = (ts, lang = 'he') =>
   ts ? `${fmtDate(toISO(new Date(ts)), lang)} ${fmtTime(ts, lang)}` : '—';
 export const fmtHours = (h) => (Math.round((Number(h) || 0) * 10) / 10).toLocaleString('en-US');
 export const hoursBetween = (a, b) => Math.max(0, (new Date(b) - new Date(a)) / 3600000);
-export const hourlyRate = (w) => Number(w?.hourly_rate) || (Number(w?.daily_rate) || 0) / 9;
+export const hourlyRate = (w) => Number(w?.hourly_rate) || (Number(w?.daily_rate) || 0) / (shiftHours() || 9);
 
-// Default working day used when a worker has no time-clock entry for that date.
-export const SHIFT_START = 7;
-export const SHIFT_END = 16;
 
 // Hours one worker spent inside [start, end]: overlap with their clocked shifts on each day,
-// or with the default 07:00–16:00 day (Sun–Fri) when they have no clock entry that day.
+// or with the project's standard shift on working days when they have no clock entry that day.
 export function laborHours(start, end, workerShifts = []) {
   const from = new Date(start);
   const to = new Date(end);
@@ -129,9 +154,9 @@ export function laborHours(start, end, workerShifts = []) {
     const clocked = workerShifts.filter((s) => s.date === iso && s.clock_in);
     const spans = clocked.length
       ? clocked.map((s) => [new Date(s.clock_in), s.clock_out ? new Date(s.clock_out) : to])
-      : day.getDay() === 6
+      : cal.rest.includes(day.getDay())
       ? []
-      : [[new Date(day.getFullYear(), day.getMonth(), day.getDate(), SHIFT_START), new Date(day.getFullYear(), day.getMonth(), day.getDate(), SHIFT_END)]];
+      : [[at(day, cal.start), at(day, cal.end)]];
     spans.forEach(([a, b]) => {
       const lo = Math.max(a, from);
       const hi = Math.min(b, to);

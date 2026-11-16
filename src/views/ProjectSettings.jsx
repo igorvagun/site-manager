@@ -4,9 +4,10 @@ import { updateRow, deleteProject, notify } from '../lib/store';
 import { ACCENTS, WALLPAPERS } from '../lib/apps';
 import { nav } from '../lib/nav';
 import { Card, Field, Icon, PageHead } from '../components/ui';
+import { fmtDate } from '../lib/utils';
 
 export default function ProjectSettings({ project }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [form, setForm] = useState(project);
   useEffect(() => setForm(project), [project.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -56,6 +57,41 @@ export default function ProjectSettings({ project }) {
               ))}
             </div>
           </div>
+        </Card>
+
+        <Card title={t('work_time')}>
+          <div className="setting col">
+            <span>{t('rest_days')}</span>
+            <div className="chips">
+              {[0, 1, 2, 3, 4, 5, 6].map((n) => {
+                const rest = Array.isArray(project.rest_days) ? project.rest_days : [6];
+                const on = rest.includes(n);
+                return (
+                  <button
+                    key={n}
+                    className={`chip ${on ? 'on' : ''}`}
+                    aria-pressed={on}
+                    onClick={() => {
+                      const next = on ? rest.filter((x) => x !== n) : [...rest, n].sort();
+                      if (next.length === 7) return notify('rest_all', 'error');
+                      style({ rest_days: next });
+                    }}
+                  >
+                    {fmtDate(`2023-01-0${n + 1}`, lang, { weekday: 'short' })}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="setting">
+            <span>{t('shift_hours')}</span>
+            <span className="time-range">
+              <input type="time" aria-label={t('start')} value={project.shift_start || '07:00'} onChange={(e) => e.target.value && e.target.value < (project.shift_end || '16:00') && style({ shift_start: e.target.value })} />
+              –
+              <input type="time" aria-label={t('end')} value={project.shift_end || '16:00'} onChange={(e) => e.target.value && e.target.value > (project.shift_start || '07:00') && style({ shift_end: e.target.value })} />
+            </span>
+          </div>
+          <small className="muted">{t('work_time_hint')}</small>
         </Card>
 
         <Card title={t('project_details')}>

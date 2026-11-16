@@ -20,6 +20,7 @@ import Accounts from '../views/Accounts';
 import Equipment from '../views/Equipment';
 import Calendar from '../views/Calendar';
 import Overview from '../views/Overview';
+import Photos from '../views/Photos';
 
 const ALL = ['manager', 'foreman', 'worker'];
 const LEAD = ['manager', 'foreman'];
@@ -37,6 +38,7 @@ export const PROJECT_APPS = [
   { id: 'materials', icon: 'box', color: 'brown', view: Materials, roles: LEAD },
   { id: 'equipment', icon: 'truck', color: 'rust', view: Equipment, roles: LEAD },
   { id: 'drawings', icon: 'layers', color: 'cyan', view: Drawings, roles: ALL },
+  { id: 'photos', icon: 'camera', color: 'peach', view: Photos, roles: ALL },
   { id: 'tasklog', icon: 'chat', color: 'mint', view: TaskJournal, roles: ALL },
   { id: 'timeclock', icon: 'clock', color: 'yellow', view: TimeClock, roles: ALL },
   { id: 'receipts', icon: 'receipt', color: 'pink', view: Receipts, roles: LEAD },

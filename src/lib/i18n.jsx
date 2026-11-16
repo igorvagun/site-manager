@@ -445,7 +445,7 @@ Object.assign(D, {
   finished: ['הסתיימה', 'Finished'],
   labor_cost: ['עלות עבודה', 'Labour cost'],
   labor_hours: ['שעות עבודה', 'Labour hours'],
-  labor_cost_hint: ['שעות בין התחלה לסיום × תעריף שעתי של כל עובד. לפי שעון הנוכחות; בלי רישום — יום עבודה 07:00–16:00.', 'Hours between start and finish × each worker’s hourly rate. Uses the time clock; with no entry, a 07:00–16:00 working day.'],
+  labor_cost_hint: ['שעות בין התחלה לסיום × תעריף שעתי של כל עובד. לפי שעון הנוכחות; בלי רישום — המשמרת הרגילה של הפרויקט.', 'Hours between start and finish × each worker’s hourly rate. Uses the time clock; with no entry, the project’s standard shift.'],
   no_workers_assigned: ['לא שויכו עובדים', 'No workers assigned'],
   task_desc_ph: ['הנחיות לביצוע המשימה…', 'Instructions for this task…'],
   add_voice_note: ['הודעה קולית', 'Voice note'],
@@ -609,7 +609,7 @@ Object.assign(D, {
   regular_hours: ['שעות רגילות', 'Regular hours'],
   overtime_hours: ['שעות נוספות', 'Overtime'],
   pay_estimate: ['שכר משוער', 'Estimated pay'],
-  payroll_note: ['הערכה בלבד: שעות מעל 9 ביום נחשבות נוספות — 2 הראשונות ב-125%, היתר ב-150%. אינו מחליף חישוב שכר רשמי.', 'Estimate only: hours above 9 in a day count as overtime — the first 2 at 125%, the rest at 150%. Not a substitute for official payroll.'],
+  payroll_note: ['הערכה בלבד: שעות מעל המשמרת הרגילה ({h} ש׳) ביום נחשבות נוספות — 2 הראשונות ב-125%, היתר ב-150%. אינו מחליף חישוב שכר רשמי.', 'Estimate only: hours above the standard shift ({h} h) in a day count as overtime — the first 2 at 125%, the rest at 150%. Not a substitute for official payroll.'],
 });
 
 Object.assign(D, {
@@ -705,6 +705,31 @@ Object.assign(D, {
   template_saved: ['התבנית נשמרה', 'Template saved'],
 });
 
+Object.assign(D, {
+  work_time: ['ימי ושעות עבודה', 'Working days and hours'],
+  rest_days: ['ימי מנוחה', 'Rest days'],
+  rest_all: ['חייב להישאר לפחות יום עבודה אחד', 'At least one working day must remain'],
+  shift_hours: ['משמרת רגילה', 'Standard shift'],
+  work_time_hint: ['משפיע על חישוב ימי עבודה, עלות משימות, שעות נוספות והזזת לוח הזמנים בפרויקט זה.', 'Used for working-day counts, task labour cost, overtime and schedule shifting in this project.'],
+  nav_photos: ['תמונות', 'Photos'],
+  photos_sub: ['כל התמונות של הפרויקט לפי תאריך — מהיומן, מהליקויים ומהצ׳אטים', 'Every project photo by date — from the daily log, issues and chats'],
+  photos_chat: ['צ׳אטים', 'Chats'],
+  no_photos: ['עדיין אין תמונות', 'No photos yet'],
+  import_csv: ['ייבוא CSV', 'Import CSV'],
+  import_choose: ['בחרו קובץ', 'Choose a file'],
+  import_sample: ['קובץ לדוגמה', 'Sample file'],
+  import_hint: ['קובץ CSV עם שורת כותרות. אפשר לייצא מ-Excel: שמירה בשם → CSV.', 'A CSV file with a header row. From Excel: Save as → CSV.'],
+  import_columns: ['התאמת עמודות', 'Match the columns'],
+  import_skip: ['— לא לייבא —', '— do not import —'],
+  import_preview: ['תצוגה מקדימה', 'Preview'],
+  import_skipped: ['שורות שידולגו בגלל שדות חובה חסרים או תאריך לא תקין', 'Rows skipped for missing required fields or an unreadable date'],
+  import_go: ['ייבא', 'Import'],
+  import_done: ['הייבוא הושלם', 'Import finished'],
+  import_empty: ['בקובץ אין שורות נתונים', 'The file has no data rows'],
+});
+
+// A key's label in every language — used to recognise column headers in imported files.
+export const labelsOf = (key) => [...(D[key] || []), RU[key]].filter(Boolean);
 export const LANGS = ['he', 'en', 'ru'];
 export const LANG_NAMES = { he: 'עברית', en: 'English', ru: 'Русский' };
 const Ctx = createContext(null);
