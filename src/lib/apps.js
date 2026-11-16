@@ -9,26 +9,34 @@ import Materials from '../views/Materials';
 import Settings from '../views/Settings';
 import Positions from '../views/Positions';
 import ProjectSettings from '../views/ProjectSettings';
+import Drawings from '../views/Drawings';
+import TaskJournal from '../views/TaskJournal';
+import TimeClock from '../views/TimeClock';
+import Receipts from '../views/Receipts';
+import Todo from '../views/Todo';
+import Contacts from '../views/Contacts';
+import Insights from '../views/Insights';
 
 const ALL = ['manager', 'foreman', 'worker'];
 const LEAD = ['manager', 'foreman'];
 
-// Sub-apps on a project's desktop. `soon` marks apps planned for the next phase.
+// Sub-apps on a project's desktop.
 export const PROJECT_APPS = [
-  { id: 'dashboard', icon: 'grid', color: 'blue', view: Dashboard, roles: LEAD },
+  { id: 'dashboard', icon: 'grid', color: 'accent', view: Dashboard, roles: LEAD },
   { id: 'team', icon: 'users', color: 'green', view: Team, roles: LEAD },
   { id: 'schedule', icon: 'calendar', color: 'red', view: Schedule, roles: ALL },
   { id: 'log', icon: 'book', color: 'orange', view: DailyLog, roles: ALL },
-  { id: 'budget', icon: 'wallet', color: 'purple', view: Budget, roles: ['manager'] },
-  { id: 'issues', icon: 'check', color: 'indigo', view: Issues, roles: ALL },
+  { id: 'budget', icon: 'wallet', color: 'indigo', view: Budget, roles: ['manager'] },
+  { id: 'issues', icon: 'check', color: 'blue', view: Issues, roles: ALL },
   { id: 'safety', icon: 'shield', color: 'teal', view: Safety, roles: ALL },
   { id: 'materials', icon: 'box', color: 'brown', view: Materials, roles: LEAD },
-  { id: 'drawings', icon: 'layers', color: 'cyan', soon: true, roles: ALL },
-  { id: 'tasklog', icon: 'chat', color: 'mint', soon: true, roles: ALL },
-  { id: 'timeclock', icon: 'clock', color: 'yellow', soon: true, roles: ALL },
-  { id: 'receipts', icon: 'receipt', color: 'pink', soon: true, roles: LEAD },
-  { id: 'todo', icon: 'list', color: 'slate', soon: true, roles: ['manager'] },
-  { id: 'contacts', icon: 'phone', color: 'lime', soon: true, roles: LEAD },
+  { id: 'drawings', icon: 'layers', color: 'cyan', view: Drawings, roles: ALL },
+  { id: 'tasklog', icon: 'chat', color: 'mint', view: TaskJournal, roles: ALL },
+  { id: 'timeclock', icon: 'clock', color: 'yellow', view: TimeClock, roles: ALL },
+  { id: 'receipts', icon: 'receipt', color: 'pink', view: Receipts, roles: LEAD },
+  { id: 'todo', icon: 'list', color: 'slate', view: Todo, roles: ['manager'] },
+  { id: 'contacts', icon: 'phone', color: 'lime', view: Contacts, roles: LEAD },
+  { id: 'insights', icon: 'sparkle', color: 'purple', view: Insights, roles: ['manager'] },
   { id: 'style', icon: 'gear', color: 'gray', view: ProjectSettings, roles: ['manager'] },
 ];
 

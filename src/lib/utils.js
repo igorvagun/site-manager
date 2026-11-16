@@ -101,3 +101,54 @@ export function resizeImage(file, max = 900, quality = 0.72) {
     img.src = url;
   });
 }
+
+export const fmtTime = (ts, lang = 'he') =>
+  ts ? new Date(ts).toLocaleTimeString(lang === 'he' ? 'he-IL' : 'en-GB', { hour: '2-digit', minute: '2-digit' }) : '—';
+export const fmtDateTime = (ts, lang = 'he') =>
+  ts ? `${fmtDate(toISO(new Date(ts)), lang)} ${fmtTime(ts, lang)}` : '—';
+export const fmtHours = (h) => (Math.round((Number(h) || 0) * 10) / 10).toLocaleString('en-US');
+export const hoursBetween = (a, b) => Math.max(0, (new Date(b) - new Date(a)) / 3600000);
+export const hourlyRate = (w) => Number(w?.hourly_rate) || (Number(w?.daily_rate) || 0) / 9;
+
+// Default working day used when a worker has no time-clock entry for that date.
+export const SHIFT_START = 7;
+export const SHIFT_END = 16;
+
+// Hours one worker spent inside [start, end]: overlap with their clocked shifts on each day,
+// or with the default 07:00–16:00 day (Sun–Fri) when they have no clock entry that day.
+export function laborHours(start, end, workerShifts = []) {
+  const from = new Date(start);
+  const to = new Date(end);
+  if (!(to > from)) return 0;
+  let total = 0;
+  const day = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  for (let i = 0; i < 400 && day <= to; i++) {
+    const iso = toISO(day);
+    const clocked = workerShifts.filter((s) => s.date === iso && s.clock_in);
+    const spans = clocked.length
+      ? clocked.map((s) => [new Date(s.clock_in), s.clock_out ? new Date(s.clock_out) : to])
+      : day.getDay() === 6
+      ? []
+      : [[new Date(day.getFullYear(), day.getMonth(), day.getDate(), SHIFT_START), new Date(day.getFullYear(), day.getMonth(), day.getDate(), SHIFT_END)]];
+    spans.forEach(([a, b]) => {
+      const lo = Math.max(a, from);
+      const hi = Math.min(b, to);
+      if (hi > lo) total += (hi - lo) / 3600000;
+    });
+    day.setDate(day.getDate() + 1);
+  }
+  return total;
+}
+
+// Labour hours and cost of a task from its start/finish marks and its crew's hourly rates.
+export function taskLabor(task, workers, shifts, now = new Date()) {
+  if (!task.started_at) return { hours: 0, cost: 0, rows: [] };
+  const end = task.finished_at || now;
+  const rows = (task.workers || []).map((name) => {
+    const w = workers.find((x) => x.name === name);
+    const hours = laborHours(task.started_at, end, w ? shifts.filter((s) => s.worker_id === w.id) : []);
+    const rate = hourlyRate(w);
+    return { name, hours, rate, cost: hours * rate };
+  });
+  return { hours: sum(rows, (r) => r.hours), cost: sum(rows, (r) => r.cost), rows };
+}

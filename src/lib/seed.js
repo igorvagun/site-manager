@@ -310,6 +310,96 @@ export function buildSeed(lang = 'he') {
     { date: d(-2), category: 'materials', description: L('אריחי גרניט פורצלן', 'Porcelain tiles'), vendor: L('נגב קרמיקה', 'Negev Ceramics'), amount: 47000, status: 'pending' },
   ]);
 
+
+  // ───── Phase 2 demo content ─────
+  const at = (dayOffset, h, m = 0) => {
+    const x = parseISO(d(dayOffset));
+    x.setHours(h, m, 0, 0);
+    return x.toISOString();
+  };
+  tasks.forEach((t) => {
+    t.description = '';
+    t.media = [];
+    t.drawing_id = null;
+    if (t.status !== 'pending') t.started_at = new Date(parseISO(t.start_date).setHours(7, 0, 0, 0)).toISOString();
+    if (t.status === 'done') t.finished_at = new Date(parseISO(t.end_date).setHours(16, 0, 0, 0)).toISOString();
+  });
+  t2.forEach((t) => {
+    t.description = '';
+    t.media = [];
+    t.drawing_id = null;
+    if (t.status !== 'pending') t.started_at = new Date(parseISO(t.start_date).setHours(7, 0, 0, 0)).toISOString();
+    if (t.status === 'done') t.finished_at = new Date(parseISO(t.end_date).setHours(16, 0, 0, 0)).toISOString();
+  });
+
+  const plan = (title, rooms) =>
+    'data:image/svg+xml;utf8,' +
+    encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" font-family="Arial" font-size="15"><rect width="800" height="560" fill="#fbfcff"/><g stroke="#27407a" fill="none" stroke-width="5"><rect x="50" y="60" width="700" height="420"/></g><g stroke="#27407a" stroke-width="3" fill="#eaf1ff">${rooms
+        .map(([x, y, w, h, n]) => `<rect x="${x}" y="${y}" width="${w}" height="${h}"/><text x="${x + w / 2}" y="${y + h / 2}" text-anchor="middle" fill="#27407a" stroke="none">${n}</text>`)
+        .join('')}</g><g fill="#27407a"><text x="50" y="40" font-size="20" font-weight="700">${title}</text><text x="50" y="520">1:100</text><text x="750" y="520" text-anchor="end">Site Manager demo drawing</text></g></svg>`
+    );
+  const drawings = mk([
+    { number: 'A-101', title: L('תכנית קומה ג — אדריכלות', 'Floor 3 plan — architecture'), discipline: 'architecture', revision: 'C', url: plan('A-101  FLOOR 3', [[50, 60, 300, 200, 'APT 9'], [350, 60, 400, 200, 'APT 10'], [50, 260, 250, 220, 'APT 11'], [300, 260, 150, 220, 'CORE'], [450, 260, 300, 220, 'APT 12']]), file_type: 'image/svg+xml', file_name: 'A-101.svg', uploaded_by: users[0].name },
+    { number: 'S-203', title: L('תכנית עמודים קומה ג — קונסטרוקציה', 'Floor 3 columns — structure'), discipline: 'structure', revision: 'B', url: plan('S-203  COLUMNS FL.3', [[90, 100, 40, 40, 'C1'], [380, 100, 40, 40, 'C2'], [670, 100, 40, 40, 'C3'], [90, 400, 40, 40, 'C4'], [380, 400, 40, 40, 'C5'], [670, 400, 40, 40, 'C6'], [300, 220, 200, 100, 'SHAFT']]), file_type: 'image/svg+xml', file_name: 'S-203.svg', uploaded_by: users[0].name },
+    { number: 'E-110', title: L('תכנית חשמל קומה ב', 'Floor 2 electrical layout'), discipline: 'electrical', revision: 'A', url: plan('E-110  ELECTRICAL FL.2', [[50, 60, 350, 210, 'DB-2A'], [400, 60, 350, 210, 'DB-2B'], [50, 270, 700, 210, 'RISER / TRAYS']]), file_type: 'image/svg+xml', file_name: 'E-110.svg', uploaded_by: users[0].name },
+  ]);
+  tasks[6].drawing_id = drawings[1].id;
+  tasks[6].description = L('יציקת עמודים C1–C6 לפי S-203. לוודא כיסוי בטון 4 ס״מ ואישור מהנדס לפני יציקה.', 'Pour columns C1–C6 per S-203. Check 4 cm concrete cover and get the engineer sign-off before pouring.');
+  tasks[8].drawing_id = drawings[2].id;
+
+  const msg = (thread, who, dayOffset, h, m, text) => ({
+    thread, sender_id: users[who].id, sender_name: users[who].name, kind: 'text', text, created_at: at(dayOffset, h, m),
+  });
+  const th = 'task:' + tasks[6].id;
+  const messages = [
+    msg(th, 1, -1, 7, 20, L('התחלנו קשירת ברזל בציר 4–7.', 'Started tying rebar on grid 4–7.')),
+    msg(th, 2, -1, 9, 5, L('חסרים לנו ספייסרים 4 ס״מ, יש רק 3.', 'We are short on 4 cm spacers, only 3 cm on site.')),
+    msg(th, 0, -1, 9, 12, L('מזמינה עכשיו, יגיע עד 11:00. לא יוצקים בלי כיסוי נכון.', 'Ordering now, arrives by 11:00. No pour without the right cover.')),
+    msg(th, 1, -1, 13, 40, L('ספייסרים הגיעו. מהנדס אישר זיון ב-C1–C3.', 'Spacers arrived. Engineer approved rebar on C1–C3.')),
+    msg(th, 1, 0, 7, 35, L('יוצקים היום C1–C4. משאבה מוזמנת ל-10:00.', 'Pouring C1–C4 today. Pump booked for 10:00.')),
+    msg('task:' + tasks[8].id, 1, -2, 11, 0, L('קבלן החשמל מדווח שהלוחות יתעכבו בשבוע.', 'Electrical sub says the panels are delayed by a week.')),
+  ].map((r) => ({ id: uid(), reactions: {}, ...r }));
+
+  // Time clock: closed shifts for past present days, open shifts today.
+  const shifts = [];
+  attendance.forEach((a) => {
+    if (a.status !== 'present') return;
+    const i = workers.findIndex((w) => w.id === a.worker_id);
+    const off = -Math.round((parseISO(today) - parseISO(a.date)) / 86400000);
+    const lateMin = (i * 7 + off * 3 + 60) % 5 === 0 ? 25 : (i * 3) % 10;
+    const clock_in = at(off, 6, 50 + lateMin);
+    const isToday = a.date === today;
+    const endH = 6 + Math.floor(50 / 60) + a.hours;
+    shifts.push({
+      worker_id: a.worker_id,
+      date: a.date,
+      clock_in,
+      clock_out: isToday && new Date() < new Date(at(off, endH, 50)) ? null : at(off, endH, 50 + ((i * 5) % 12)),
+      in_by: null,
+      out_by: null,
+    });
+  });
+
+  const contacts = mk([
+    { name: L('אינג׳ רונית שחר', 'Eng. Ronit Shahar'), company: L('שחר מהנדסים', 'Shahar Engineers'), kind: 'engineer', phone: '054-5550142', email: 'ronit@shahar-eng.example', notes: L('מהנדסת קונסטרוקציה. זמינה א׳–ה׳.', 'Structural engineer. Available Sun–Thu.') },
+    { name: L('אדר׳ עומר ברק', 'Arch. Omer Barak'), company: L('ברק אדריכלים', 'Barak Architects'), kind: 'architect', phone: '052-5550177', email: 'omer@barak-arch.example', notes: '' },
+    { name: L('אבי נחום', 'Avi Nahum'), company: L('שלד בע״מ', 'Sheled Ltd'), kind: 'contractor', phone: '050-5550119', email: '', notes: L('קבלן שלד וטפסנות', 'Frame & formwork subcontractor') },
+    { name: L('נאדר חורי', 'Nader Khoury'), company: L('א.נ. מערכות', 'A.N. Systems'), kind: 'contractor', phone: '053-5550163', email: '', notes: L('חשמל ואינסטלציה', 'Electrical & plumbing') },
+    { name: L('מוקד הזמנות', 'Order desk'), company: L('רדימיקס', 'Readymix'), kind: 'supplier', phone: '04-5550100', email: 'orders@readymix.example', notes: L('להזמין בטון 48 שעות מראש', 'Order concrete 48 h ahead') },
+    { name: L('גלית מור', 'Galit Mor'), company: L('אלון נדל״ן בע״מ', 'Alon Real Estate Ltd'), kind: 'client', phone: '054-5550188', email: 'galit@alon-re.example', notes: L('נציגת המזמין', 'Client representative') },
+    { name: L('יעקב סלע', 'Yaakov Sela'), company: L('עירייה — פיקוח', 'Municipality — inspection'), kind: 'inspector', phone: '04-5550155', email: '', notes: '' },
+  ]);
+
+  const todos = mk([
+    { title: L('לאשר הזמנת בטון ליום חמישי', 'Confirm Thursday concrete order'), list: L('אתר', 'Site'), priority: 'high', due_date: d(0), done: false, pinned: true, notes: '', subtasks: [{ t: L('כמות: 40 מ״ק', 'Quantity: 40 m³'), done: true }, { t: L('משאבה 10:00', 'Pump at 10:00'), done: false }] },
+    { title: L('לתאם ביקורת מהנדס — עמודים קומה ג', 'Book engineer inspection — floor 3 columns'), list: L('אתר', 'Site'), priority: 'high', due_date: d(0), done: false, pinned: false, notes: '', subtasks: [] },
+    { title: L('לבדוק חשבון חלקי של שלד בע״מ', 'Review Sheled progress bill'), list: L('כספים', 'Finance'), priority: 'medium', due_date: d(2), done: false, pinned: false, notes: '', subtasks: [] },
+    { title: L('לענות ל-RFI על פיר המעלית', 'Answer elevator-shaft RFI'), list: L('תכנון', 'Design'), priority: 'high', due_date: d(-1), done: false, pinned: false, notes: '', subtasks: [] },
+    { title: L('לחדש ביטוח אתר', 'Renew site insurance'), list: L('כספים', 'Finance'), priority: 'low', due_date: d(20), done: false, pinned: false, notes: '', subtasks: [] },
+    { title: L('סיור בטיחות שבועי', 'Weekly safety walk'), list: L('אתר', 'Site'), priority: 'medium', due_date: d(-1), done: true, pinned: false, notes: '', subtasks: [] },
+  ]).map((r) => ({ ...r, user_id: USER_IDS.manager }));
+
   return {
     users,
     positions,
@@ -324,5 +414,10 @@ export function buildSeed(lang = 'he') {
     issues: scope(P1, issues),
     safety: scope(P1, safety),
     materials: scope(P1, materials),
+    drawings: scope(P1, drawings),
+    messages: scope(P1, messages),
+    shifts: scope(P1, mk(shifts)),
+    todos: scope(P1, todos),
+    contacts: scope(P1, contacts),
   };
 }

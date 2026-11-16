@@ -16,6 +16,11 @@ export const SCOPED = [
   'issues',
   'safety',
   'materials',
+  'drawings',
+  'messages',
+  'shifts',
+  'todos',
+  'contacts',
 ];
 export const COLLECTIONS = [...GLOBAL, ...SCOPED];
 

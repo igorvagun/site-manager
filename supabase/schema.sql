@@ -3,7 +3,8 @@
 -- Sign-in uses Supabase Auth (email + password); create an Auth user for each row in `users`.
 --
 -- SECURITY NOTE: the policies below give the public anon key full read/write access,
--- matching the original single-table setup. Anyone with the app URL can change data.
+-- matching the original single-table setup. Anyone with the app URL can change data,
+-- including private to-do lists, chats and stored files.
 -- Before real use, enable Supabase Auth and replace them with `TO authenticated` policies.
 
 CREATE TABLE IF NOT EXISTS tasks (
@@ -160,12 +161,97 @@ CREATE TABLE IF NOT EXISTS materials (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ───── Phase 2 tables ─────
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS started_at TIMESTAMPTZ;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS finished_at TIMESTAMPTZ;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS started_by UUID;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS finished_by UUID;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS drawing_id UUID;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS media JSONB DEFAULT '[]'::JSONB; -- voice / video notes
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS receipt_id TEXT;             -- file id of the receipt photo
+
+CREATE TABLE IF NOT EXISTS drawings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  number TEXT DEFAULT '',
+  revision TEXT DEFAULT '',
+  discipline TEXT DEFAULT 'architecture',
+  file_id TEXT,          -- object name in the "files" storage bucket
+  file_name TEXT DEFAULT '',
+  file_type TEXT DEFAULT '',
+  url TEXT,              -- inline demo drawings only
+  uploaded_by TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- One table for every conversation: thread is "task:<id>", "worker:<id>" or "contact:<id>".
+CREATE TABLE IF NOT EXISTS messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  thread TEXT NOT NULL,
+  sender_id UUID,
+  sender_name TEXT DEFAULT '',
+  kind TEXT NOT NULL DEFAULT 'text', -- text | audio | video | image | file
+  text TEXT DEFAULT '',
+  file_id TEXT,
+  file_name TEXT DEFAULT '',
+  reply_to UUID,
+  reactions JSONB DEFAULT '{}'::JSONB,
+  deleted BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS messages_thread_idx ON messages (thread, created_at);
+
+CREATE TABLE IF NOT EXISTS shifts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  worker_id UUID NOT NULL REFERENCES workers(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  clock_in TIMESTAMPTZ NOT NULL,
+  clock_out TIMESTAMPTZ,
+  in_by UUID,
+  out_by UUID,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS shifts_date_idx ON shifts (date);
+
+CREATE TABLE IF NOT EXISTS todos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  title TEXT NOT NULL,
+  list TEXT DEFAULT '',
+  priority TEXT DEFAULT 'medium',
+  due_date DATE,
+  done BOOLEAN DEFAULT FALSE,
+  done_at TIMESTAMPTZ,
+  pinned BOOLEAN DEFAULT FALSE,
+  notes TEXT DEFAULT '',
+  subtasks JSONB DEFAULT '[]'::JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS contacts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  company TEXT DEFAULT '',
+  kind TEXT DEFAULT 'contractor',
+  phone TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  notes TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- File storage for drawings, voice and video notes, chat attachments and receipt photos.
+INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', FALSE) ON CONFLICT (id) DO NOTHING;
+DROP POLICY IF EXISTS "site-manager files" ON storage.objects;
+CREATE POLICY "site-manager files" ON storage.objects FOR ALL USING (bucket_id = 'files') WITH CHECK (bucket_id = 'files');
+
 -- Every project-scoped table points at its project; deleting a project removes its rows.
 DO $$
 DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['tasks','workers','attendance','logs','expenses',
-                           'budget_lines','change_orders','issues','safety','materials']
+                           'budget_lines','change_orders','issues','safety','materials',
+                           'drawings','messages','shifts','todos','contacts']
   LOOP
     EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE CASCADE', t);
     EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (project_id)', t || '_project_idx', t);
@@ -177,7 +263,8 @@ DO $$
 DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['projects','users','positions','tasks','workers','attendance','logs','expenses',
-                           'budget_lines','change_orders','issues','safety','materials']
+                           'budget_lines','change_orders','issues','safety','materials',
+                           'drawings','messages','shifts','todos','contacts']
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('DROP POLICY IF EXISTS "Allow all operations for anon" ON %I', t);

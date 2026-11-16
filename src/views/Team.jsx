@@ -3,6 +3,7 @@ import { useI18n } from '../lib/i18n';
 import { useData, addRow, updateRow, removeRow } from '../lib/store';
 import { useOptions, ATTENDANCE } from '../lib/constants';
 import { Glass, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox, Stat } from '../components/ui';
+import { ChatModal } from '../components/Chat';
 import { todayISO, addDays, fmtDate, fmtMoney, sum, exportCSV } from '../lib/utils';
 
 export default function Team() {
@@ -14,6 +15,7 @@ export default function Team() {
   const [date, setDate] = useState(today);
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState(null);
+  const [chat, setChat] = useState(null);
 
   const workers = [...data.workers]
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -120,6 +122,7 @@ export default function Team() {
                     <b>{w.name}</b>
                     <small>{[w.role, w.company].filter(Boolean).join(' · ')}</small>
                   </div>
+                  <IconButton icon="chat" label={t('message')} onClick={() => setChat(w)} />
                   <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...blankWorker, ...w, start_date: w.start_date || '', active: w.active === false ? 'no' : 'yes' })} />
                 </header>
                 <div className="worker-meta">
@@ -160,6 +163,7 @@ export default function Team() {
         </div>
       )}
 
+      {chat && <ChatModal thread={'worker:' + chat.id} title={chat.name} subtitle={[chat.role, chat.company].filter(Boolean).join(' · ')} onClose={() => setChat(null)} />}
       {editing && (
         <EntityForm
           title={editing.id ? t('edit_worker') : t('new_worker')}

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useI18n } from '../lib/i18n';
 import { useStore } from '../lib/store';
 import { resizeImage, clamp } from '../lib/utils';
@@ -47,6 +48,13 @@ const ICONS = {
   idcard: 'M3 6h18v12H3zM8.5 12.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5.5 15.5c.6-1.3 1.7-2 3-2s2.4.7 3 2M14 10h4M14 13.5h4',
   building: 'M5 21V4h9v17M14 9h5v12M3 21h18M8 8h3M8 12h3M8 16h3',
   back: 'M15 5l-7 7 7 7',
+  mic: 'M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21',
+  sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z',
+  bell: 'M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15L6 16zM10 20.5a2 2 0 0 0 4 0',
+  play: 'M7 4.5v15l12-7.500-12-7.500z',
+  stop: 'M6 6h12v12H6z',
+  pin: 'M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7',
+  mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
   receipt: 'M6 3h12v18l-3-2-3 2-3-2-3 2V3zM9 8h6M9 12h6',
 };
 
@@ -185,7 +193,11 @@ export function IconButton({ icon, label, onClick, tone = '', size = 18, ...rest
 export function Modal({ title, onClose, children, footer, wide }) {
   const ref = useRef(null);
   useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose();
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      const all = document.querySelectorAll('.overlay');
+      if (all[all.length - 1]?.contains(ref.current)) onClose();
+    };
     document.addEventListener('keydown', onKey);
     const prev = document.activeElement;
     ref.current?.querySelector('input,select,textarea,button')?.focus();
@@ -194,7 +206,8 @@ export function Modal({ title, onClose, children, footer, wide }) {
       prev?.focus?.();
     };
   }, [onClose]);
-  return (
+  // Rendered at the document root so a dialog opened from inside another dialog is not clipped by it.
+  return createPortal(
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className={`glass modal ${wide ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={title} ref={ref}>
         <header className="modal-head">
@@ -204,7 +217,8 @@ export function Modal({ title, onClose, children, footer, wide }) {
         <div className="modal-body">{children}</div>
         {footer && <footer className="modal-foot">{footer}</footer>}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

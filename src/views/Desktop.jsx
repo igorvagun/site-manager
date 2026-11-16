@@ -5,6 +5,7 @@ import { ACCENTS, WALLPAPERS } from '../lib/apps';
 import { Icon, IconButton, Glass, Ring, EntityForm } from '../components/ui';
 import { useMetrics } from './Dashboard';
 import { nav } from '../lib/nav';
+import Notifications from '../components/Notifications';
 import { todayISO, addDays, fmtDate, fmtMoney, sum, taskBudget } from '../lib/utils';
 
 export function AppIcon({ icon, color, label, onClick, soon, badge, accent }) {
@@ -150,6 +151,7 @@ export default function Desktop({ user, project, projects, apps, controls, onLog
           )}
         </div>
         <div className="status-end">
+          <Notifications user={user} projects={projects} />
           {controls}
           <span className="user-chip" title={user.email}>
             <span className="avatar small">{user.name.slice(0, 1)}</span>

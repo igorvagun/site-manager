@@ -1,8 +1,9 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useI18n } from '../lib/i18n';
 import { useStore, useUser, replaceAll, loadDemo, notify, COLLECTIONS } from '../lib/store';
 import { Card, Icon, Segmented, PageHead } from '../components/ui';
 import { downloadFile, todayISO } from '../lib/utils';
+import { readPrefs, writePrefs } from '../components/Notifications';
 
 export default function Settings({ theme, setTheme }) {
   const { t, lang, setLang } = useI18n();
@@ -10,6 +11,13 @@ export default function Settings({ theme, setTheme }) {
   const user = useUser();
   const fileRef = useRef(null);
   const isManager = user?.role === 'manager';
+  const [prefs, setPrefs] = useState(() => readPrefs(user.id));
+  const toggle = (k) => {
+    const next = { ...prefs, [k]: !prefs[k] };
+    setPrefs(next);
+    writePrefs(user.id, next);
+  };
+  const notifKinds = user.role === 'worker' ? ['messages'] : ['shifts', 'tasks', 'messages'];
 
   const restore = async (e) => {
     const file = e.target.files[0];
@@ -43,6 +51,14 @@ export default function Settings({ theme, setTheme }) {
               <span className="badge tone-blue">{t('role_' + user.role)}</span>
             </div>
           </Card>
+          <Card title={t('notifications')}>
+            {notifKinds.map((k) => (
+              <label className="setting switch-row" key={k}>
+                <span>{t('notify_' + k)}</span>
+                <input type="checkbox" role="switch" checked={!!prefs[k]} onChange={() => toggle(k)} />
+              </label>
+            ))}
+          </Card>
           <Card title={t('appearance')}>
             <div className="setting">
               <span>{t('language')}</span>
@@ -71,6 +87,7 @@ export default function Settings({ theme, setTheme }) {
             <small>{t(mode === 'cloud' ? 'mode_cloud_hint' : 'mode_local_hint')}</small>
           </div>
           {cloudErrors.length > 0 && <p className="form-error">{t('cloud_missing_tables')}: {cloudErrors.join(', ')}</p>}
+          <small className="muted">{t('backup_note')}</small>
           {isManager && (
             <div className="btn-row">
               <button className="btn" onClick={() => downloadFile(`site-manager-backup-${todayISO()}.json`, JSON.stringify(Object.fromEntries(COLLECTIONS.map((c) => [c, data[c]])), null, 2), 'application/json')}>
