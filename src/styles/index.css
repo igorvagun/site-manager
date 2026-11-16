@@ -3884,3 +3884,134 @@ button.pin-tag:hover {
   font-size: 12.5px;
   color: var(--text3);
 }
+
+/* ───────── Daily report ───────── */
+.report {
+  background: #fff;
+  color: #14161f;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  padding: 28px 30px;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  --text2: #555b6e;
+  --text3: #8a90a2;
+  --hairline: #e3e6ee;
+  --fill-2: #d5d9e4;
+}
+.report header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #14161f;
+}
+.report header p,
+.report-date span {
+  color: var(--text2);
+  font-size: 13px;
+}
+.report-date {
+  display: flex;
+  flex-direction: column;
+  text-align: end;
+}
+.report h4 {
+  color: #14161f;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.report .pre {
+  white-space: pre-line;
+}
+.report ul {
+  list-style: disc;
+  padding-inline-start: 20px;
+}
+.report-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+.report-photos img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.report footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.log-body header .spacer {
+  flex: 1;
+}
+@media print {
+  .no-print,
+  .modal-head {
+    display: none !important;
+  }
+  /* When a report is open, print only the report. */
+  body:has(.report) .window,
+  body:has(.report) .desktop {
+    display: none !important;
+  }
+  body:has(.report) .overlay {
+    position: static;
+    display: block;
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+  }
+  body:has(.report) .modal {
+    width: 100%;
+    max-height: none;
+    border: 0;
+    box-shadow: none;
+    outline: 0;
+    background: #fff;
+  }
+  body:has(.report) .modal-body {
+    overflow: visible;
+    padding: 0;
+  }
+  .report {
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+}
+/* ───────── Phone status bar ───────── */
+.user-chip {
+  flex: none;
+}
+@media (max-width: 520px) {
+  .status-bar .user-chip {
+    display: none;
+  }
+  .status-bar .pill.back span,
+  .window-bar .pill.back span {
+    max-width: 24vw;
+  }
+  .status-bar,
+  .window-bar {
+    gap: 2px;
+  }
+  .status-end,
+  .pill-group {
+    gap: 0;
+  }
+  .lang-pick {
+    padding-inline: 6px;
+  }
+}

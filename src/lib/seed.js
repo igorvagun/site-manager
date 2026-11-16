@@ -170,7 +170,9 @@ export function buildSeed(lang = 'he') {
       ['rfi', L('סוג בידוד לקירות חוץ', 'Exterior wall insulation type'), L('נדרש אישור יועץ תרמי לחלופה.', 'Thermal consultant approval required for the alternative.'), 'חוץ', 8, 'low', 'open', 12],
       ['punch', L('מעקה זמני רופף בחדר מדרגות', 'Loose temporary railing in stairwell'), '', 'א', 8, 'high', 'done', -6],
       ['punch', L('כיסוי בטון לא מספק בקורה', 'Insufficient concrete cover on beam'), '', 'א', 4, 'medium', 'done', -20],
-    ].map(([type, title, description, floor, a, priority, status, due]) => ({
+    ].map(([type, title, description, floor, a, priority, status, due], idx) => ({
+      // Raised over the past weeks, not all today.
+      created_at: new Date(parseISO(d(-(idx * 4 + 2))).setHours(9, 30)).toISOString(),
       type,
       title,
       description,

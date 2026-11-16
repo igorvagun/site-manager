@@ -612,6 +612,17 @@ Object.assign(D, {
   payroll_note: ['הערכה בלבד: שעות מעל 9 ביום נחשבות נוספות — 2 הראשונות ב-125%, היתר ב-150%. אינו מחליף חישוב שכר רשמי.', 'Estimate only: hours above 9 in a day count as overtime — the first 2 at 125%, the rest at 150%. Not a substitute for official payroll.'],
 });
 
+Object.assign(D, {
+  daily_report: ['דוח יומי', 'Daily report'],
+  print_pdf: ['הדפסה / שמירה כ-PDF', 'Print / save as PDF'],
+  report_crew: ['כוח אדם באתר', 'Crew on site'],
+  report_no_clock: ['אין רישומי שעון נוכחות ליום זה', 'No time-clock entries for this day'],
+  report_tasks: ['משימות', 'Tasks'],
+  report_issues: ['ליקויים ובטיחות שנפתחו', 'Issues and safety items raised'],
+  report_expenses: ['הוצאות', 'Expenses'],
+  report_signature: ['חתימת מנהל העבודה', 'Site manager signature'],
+});
+
 export const LANGS = ['he', 'en', 'ru'];
 export const LANG_NAMES = { he: 'עברית', en: 'English', ru: 'Русский' };
 const Ctx = createContext(null);

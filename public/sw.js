@@ -1,6 +1,6 @@
 // Offline support: the app shell is cached so the app opens without a connection.
 // Data already lives in the browser in local mode, so everything keeps working offline.
-const CACHE = 'site-manager-v1';
+const CACHE = 'site-manager-v2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './manifest.webmanifest', './icon.svg'])));
@@ -23,7 +23,9 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          caches.open(CACHE).then((c) => c.put('./', res.clone()));
+          // Copy before the page starts reading the response, or the copy fails.
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put('./', copy));
           return res;
         })
         .catch(() => caches.match('./'))
@@ -36,7 +38,10 @@ self.addEventListener('fetch', (event) => {
       (hit) =>
         hit ||
         fetch(req).then((res) => {
-          if (res.ok) caches.open(CACHE).then((c) => c.put(req, res.clone()));
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy));
+          }
           return res;
         })
     )
