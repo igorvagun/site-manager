@@ -17,6 +17,7 @@ import Todo from '../views/Todo';
 import Contacts from '../views/Contacts';
 import Insights from '../views/Insights';
 import Accounts from '../views/Accounts';
+import Equipment from '../views/Equipment';
 
 const ALL = ['manager', 'foreman', 'worker'];
 const LEAD = ['manager', 'foreman'];
@@ -31,6 +32,7 @@ export const PROJECT_APPS = [
   { id: 'issues', icon: 'check', color: 'blue', view: Issues, roles: ALL },
   { id: 'safety', icon: 'shield', color: 'teal', view: Safety, roles: ALL },
   { id: 'materials', icon: 'box', color: 'brown', view: Materials, roles: LEAD },
+  { id: 'equipment', icon: 'truck', color: 'rust', view: Equipment, roles: LEAD },
   { id: 'drawings', icon: 'layers', color: 'cyan', view: Drawings, roles: ALL },
   { id: 'tasklog', icon: 'chat', color: 'mint', view: TaskJournal, roles: ALL },
   { id: 'timeclock', icon: 'clock', color: 'yellow', view: TimeClock, roles: ALL },

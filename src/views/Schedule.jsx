@@ -1,14 +1,47 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '../lib/i18n';
-import { useData, addRow, updateRow, removeRow } from '../lib/store';
+import { useData, addRow, updateRow, removeRow, notify } from '../lib/store';
 import { useOptions, TASK_STATUS } from '../lib/constants';
 import { Glass, Badge, Segmented, Icon, IconButton, EntityForm, Empty, PageHead, SearchBox } from '../components/ui';
 import { todayISO, addDays, diffDays, parseISO, fmtDate, fmtMoney, workingDays, taskBudget, plannedProgress, exportCSV, clamp, toISO } from '../lib/utils';
 
+// A task that "follows" another must start after it ends.
+export const dependencyOf = (task, tasks) => (task.depends_on ? tasks.find((x) => x.id === task.depends_on && x.id !== task.id) : null);
+export const dependencyConflict = (task, tasks) => {
+  const dep = dependencyOf(task, tasks);
+  return dep && task.status !== 'done' && task.start_date <= dep.end_date ? dep : null;
+};
+const nextWorkday = (iso) => {
+  let d = addDays(iso, 1);
+  while (parseISO(d).getDay() === 6) d = addDays(d, 1);
+  return d;
+};
+// Move a task to start right after its predecessor, keeping its length, then push on anything that follows it.
+export function shiftPlan(task, tasks) {
+  const moves = [];
+  const dates = new Map(tasks.map((x) => [x.id, { start: x.start_date, end: x.end_date }]));
+  const visit = (x, seen) => {
+    if (seen.has(x.id)) return;
+    seen.add(x.id);
+    const dep = dependencyOf(x, tasks);
+    if (!dep || x.status === 'done') return;
+    const depEnd = dates.get(dep.id).end;
+    const cur = dates.get(x.id);
+    if (cur.start > depEnd) return;
+    const start = nextWorkday(depEnd);
+    const end = addDays(start, diffDays(cur.start, cur.end));
+    dates.set(x.id, { start, end });
+    moves.push({ id: x.id, name: x.name, start_date: start, end_date: end });
+    tasks.filter((y) => y.depends_on === x.id).forEach((y) => visit(y, seen));
+  };
+  visit(task, new Set());
+  return moves;
+}
+
 export function useTaskFields() {
   const { t } = useI18n();
   const o = useOptions();
-  const { workers } = useData();
+  const { workers, tasks } = useData();
   return [
     { key: 'name', label: t('task_name'), required: true, placeholder: t('task_name_ph') },
     { key: 'floor', label: t('floor'), type: 'select', options: o.floors, half: true },
@@ -17,6 +50,7 @@ export function useTaskFields() {
     { key: 'end_date', label: t('end'), type: 'date', required: true, half: true },
     { key: 'daily_cost', label: t('daily_cost'), type: 'number', min: 0, half: true },
     { key: 'progress', label: t('progress'), type: 'range', half: true },
+    { key: 'depends_on', label: t('follows_task'), type: 'select', options: [{ value: '', label: t('no_dependency') }, ...[...tasks].sort((a, b) => (a.position || 0) - (b.position || 0)).map((x) => ({ value: x.id, label: x.name }))] },
     { key: 'workers', label: t('assigned_workers'), type: 'chips', options: workers.filter((w) => w.active !== false).map((w) => ({ value: w.name, label: w.name })) },
     { key: 'notes', label: t('notes'), type: 'textarea' },
   ];
@@ -77,7 +111,7 @@ function Gantt({ tasks, onEdit }) {
                   ))}
                   {todayPos != null && <div className="gantt-today" style={{ insetInlineStart: todayPos + '%' }} />}
                   <button
-                    className={`gantt-bar tone-${TASK_STATUS[x.status] || 'neutral'}`}
+                    className={`gantt-bar tone-${TASK_STATUS[x.status] || 'neutral'} ${dependencyConflict(x, tasks) ? 'clash' : ''}`}
                     style={{ insetInlineStart: left + '%', width: width + '%' }}
                     onClick={() => onEdit(x)}
                     title={`${x.name} · ${fmtDate(x.start_date, lang)} – ${fmtDate(x.end_date, lang)} · ${x.progress}%`}
@@ -140,7 +174,13 @@ export default function Schedule() {
       if (r.position !== idx + 1) updateRow('tasks', r.id, { position: idx + 1 });
     });
   };
+  const shift = (x) => {
+    const moves = shiftPlan(x, all);
+    moves.forEach((m) => updateRow('tasks', m.id, { start_date: m.start_date, end_date: m.end_date }));
+    if (moves.length) notify('schedule_shifted');
+  };
   const blank = {
+    depends_on: '',
     name: '', floor: 'א', status: 'pending', start_date: today, end_date: addDays(today, 14), daily_cost: '', progress: 0, workers: [], notes: '',
     position: (Math.max(0, ...all.map((x) => x.position || 0)) || 0) + 1,
   };
@@ -209,6 +249,8 @@ export default function Schedule() {
             const late = x.status !== 'done' && x.end_date < today;
             const behind = x.status !== 'done' && x.progress < plannedProgress(x, today) - 10;
             const days = workingDays(x.start_date, x.end_date);
+            const dep = dependencyOf(x, all);
+            const clash = dependencyConflict(x, all);
             return (
               <Glass className="task-row" key={x.id}>
                 {!filtered && (
@@ -218,7 +260,7 @@ export default function Schedule() {
                   </div>
                 )}
                 <div className="task-main">
-                  <button className="task-title" onClick={() => setEditing(x)}>{x.name}</button>
+                  <button className="task-title" onClick={() => setEditing({ ...x, depends_on: x.depends_on || '' })}>{x.name}</button>
                   <div className="task-meta">
                     <span className="tag">{o.floorLabel(x.floor)}</span>
                     <span className={late ? 'warn-text' : ''}>
@@ -228,6 +270,22 @@ export default function Schedule() {
                     <span>{fmtMoney(x.daily_cost, cur)}/{t('day')} · {fmtMoney(taskBudget(x), cur)}</span>
                     {(late || behind) && <Badge tone="red">{late ? t('past_due') : t('behind')}</Badge>}
                   </div>
+                  {dep && (
+                    <div className="task-meta">
+                      <span className={clash ? 'warn-text' : ''}>
+                        ↳ {t('dep_after')}: {dep.name} ({fmtDate(dep.end_date, lang)})
+                      </span>
+                      {clash && (
+                        <>
+                          <Badge tone="red">{t('dep_conflict')}</Badge>
+                          <button className="btn small" onClick={() => shift(x)}>
+                            <Icon name="arrow" size={13} className="flip-rtl" />
+                            {t('shift_schedule')}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
                   {(x.workers?.length > 0 || x.notes) && (
                     <div className="task-meta">
                       {(x.workers || []).map((w) => <span className="avatar-chip" key={w}><i>{w.slice(0, 1)}</i>{w}</span>)}
@@ -252,7 +310,7 @@ export default function Schedule() {
                   {t('st_' + x.status)}
                   <Icon name="down" size={12} />
                 </label>
-                <IconButton icon="edit" label={t('edit')} onClick={() => setEditing(x)} />
+                <IconButton icon="edit" label={t('edit')} onClick={() => setEditing({ ...x, depends_on: x.depends_on || '' })} />
               </Glass>
             );
           })}
@@ -268,6 +326,7 @@ export default function Schedule() {
           onSave={(v) => {
             if (v.progress === 100) v.status = 'done';
             if (v.status === 'done') v.progress = 100;
+            v.depends_on = v.depends_on && v.depends_on !== editing.id ? v.depends_on : null;
             editing.id ? updateRow('tasks', editing.id, v) : addRow('tasks', v);
           }}
           onDelete={editing.id ? () => removeRow('tasks', editing.id) : null}

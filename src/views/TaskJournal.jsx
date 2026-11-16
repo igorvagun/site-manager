@@ -257,7 +257,7 @@ export default function TaskJournal() {
   ];
   const blank = {
     name: '', floor: 'א', status: 'pending', start_date: today, end_date: addDays(today, 7), daily_cost: '', progress: 0, workers: [], notes: '',
-    description: '', drawing_id: '', media: [], position: Math.max(0, ...data.tasks.map((x) => x.position || 0)) + 1,
+    description: '', drawing_id: '', depends_on: '', media: [], position: Math.max(0, ...data.tasks.map((x) => x.position || 0)) + 1,
   };
 
   return (
@@ -355,7 +355,7 @@ export default function TaskJournal() {
           initial={editing}
           onClose={() => setEditing(null)}
           onSave={(v) => {
-            const row = { ...v, drawing_id: v.drawing_id || null };
+            const row = { ...v, drawing_id: v.drawing_id || null, depends_on: v.depends_on && v.depends_on !== editing.id ? v.depends_on : null };
             editing.id ? updateRow('tasks', editing.id, row) : addRow('tasks', row);
           }}
           onDelete={

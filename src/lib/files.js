@@ -60,8 +60,21 @@ export async function getFileURL(id) {
   return url;
 }
 
-export async function deleteFile(id) {
-  if (!id) return;
+// Deletion is delayed a few seconds so "Undo" can still bring the record back with its file.
+const pending = new Map();
+export function deleteFile(id) {
+  if (!id || pending.has(id)) return;
+  pending.set(id, setTimeout(() => {
+    pending.delete(id);
+    deleteFileNow(id);
+  }, 9000));
+}
+export function cancelFileDeletes() {
+  pending.forEach((timer) => clearTimeout(timer));
+  pending.clear();
+}
+
+async function deleteFileNow(id) {
   if (urls.has(id)) {
     URL.revokeObjectURL(urls.get(id));
     urls.delete(id);

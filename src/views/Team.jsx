@@ -33,7 +33,7 @@ export default function Team() {
     const r = rec(w);
     const patch = { status, hours: status === 'present' ? r?.hours || 9 : 0 };
     if (r) {
-      if (r.status === status) removeRow('attendance', r.id);
+      if (r.status === status) removeRow('attendance', r.id, { silent: true });
       else updateRow('attendance', r.id, patch);
     } else addRow('attendance', { worker_id: w.id, date, ...patch });
   };

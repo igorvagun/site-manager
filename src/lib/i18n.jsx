@@ -623,6 +623,42 @@ Object.assign(D, {
   report_signature: ['חתימת מנהל העבודה', 'Site manager signature'],
 });
 
+Object.assign(D, {
+  follows_task: ['מתחילה אחרי משימה', 'Starts after task'],
+  no_dependency: ['ללא תלות', 'No dependency'],
+  dep_after: ['אחרי', 'After'],
+  dep_conflict: ['חופפת למשימה הקודמת', 'Overlaps its predecessor'],
+  shift_schedule: ['הזז קדימה', 'Shift forward'],
+  schedule_shifted: ['לוח הזמנים עודכן', 'Schedule shifted'],
+  deleted: ['נמחק', 'Deleted'],
+  undo: ['בטל', 'Undo'],
+  restored_item: ['שוחזר', 'Restored'],
+  alert_equipment: ['ציוד שלא הוחזר בזמן', 'Rental overdue for return'],
+  nav_equipment: ['ציוד', 'Equipment'],
+  equipment_sub: ['ציוד באתר, השכרות, מועדי החזרה ובדיקות', 'Machinery on site, rentals, return dates and inspections'],
+  new_equipment: ['ציוד חדש', 'New equipment'],
+  edit_equipment: ['עריכת ציוד', 'Edit equipment'],
+  equipment_name: ['שם הציוד', 'Equipment'],
+  ownership: ['בעלות', 'Ownership'],
+  eq_rented: ['מושכר', 'Rented'],
+  eq_owned: ['בבעלות', 'Owned'],
+  eqs_on_site: ['באתר', 'On site'],
+  eqs_maintenance: ['בתיקון', 'In repair'],
+  eqs_returned: ['הוחזר', 'Returned'],
+  rent_per_day: ['השכרה ליום', 'Rent per day'],
+  rent_to_date: ['עלות השכרה עד כה', 'Rental cost to date'],
+  on_site_from: ['באתר מתאריך', 'On site from'],
+  return_by: ['להחזיר עד', 'Return by'],
+  next_inspection: ['בדיקה הבאה', 'Next inspection'],
+  mark_returned: ['סמן כהוחזר', 'Mark returned'],
+  eq_on_site: ['באתר', 'On site'],
+  eq_rented_word: ['מושכרים', 'rented'],
+  eq_overdue: ['באיחור החזרה', 'Overdue returns'],
+  eq_overdue_sub: ['השכרה ממשיכה להיספר', 'Rent keeps running'],
+  eq_inspections: ['בדיקות קרובות', 'Inspections due'],
+  no_equipment: ['אין ציוד', 'No equipment'],
+});
+
 export const LANGS = ['he', 'en', 'ru'];
 export const LANG_NAMES = { he: 'עברית', en: 'English', ru: 'Русский' };
 const Ctx = createContext(null);

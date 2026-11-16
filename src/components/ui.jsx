@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../lib/i18n';
-import { useStore } from '../lib/store';
+import { useStore, dismissToast } from '../lib/store';
 import { resizeImage, clamp } from '../lib/utils';
 
 const ICONS = {
@@ -431,6 +431,17 @@ export function Toasts() {
         <div key={x.id} className={`glass toast ${x.type}`}>
           <Icon name={x.type === 'error' ? 'alert' : 'check'} size={18} />
           {t(x.message)}
+          {x.action && (
+            <button
+              className="toast-action"
+              onClick={() => {
+                dismissToast(x.id);
+                x.action.run();
+              }}
+            >
+              {t(x.action.label)}
+            </button>
+          )}
         </div>
       ))}
     </div>

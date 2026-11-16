@@ -4015,3 +4015,24 @@ button.pin-tag:hover {
     padding-inline: 6px;
   }
 }
+
+/* ───────── Undo toast, equipment, dependencies ───────── */
+.c-rust { --i1: #f3b08a; --i2: #c2562a; }
+.toast {
+  pointer-events: auto;
+}
+.toast-action {
+  margin-inline-start: 6px;
+  padding: 3px 12px;
+  border-radius: 99px;
+  font-weight: 700;
+  color: var(--blue);
+  background: var(--fill-2);
+}
+.toast-action:hover {
+  filter: brightness(1.08);
+}
+.gantt-bar.clash {
+  outline: 2px dashed var(--red);
+  outline-offset: 1px;
+}

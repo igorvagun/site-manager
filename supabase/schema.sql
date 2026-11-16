@@ -245,6 +245,23 @@ CREATE TABLE IF NOT EXISTS contacts (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS depends_on UUID; -- the task this one must start after
+
+CREATE TABLE IF NOT EXISTS equipment (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT 'rented',   -- rented | owned
+  status TEXT NOT NULL DEFAULT 'on_site', -- on_site | maintenance | returned
+  supplier TEXT DEFAULT '',
+  daily_rate NUMERIC NOT NULL DEFAULT 0,
+  start_date DATE,
+  return_date DATE,
+  returned_on DATE,
+  inspection_date DATE,
+  notes TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- File storage for drawings, voice and video notes, chat attachments and receipt photos.
 INSERT INTO storage.buckets (id, name, public) VALUES ('files', 'files', FALSE) ON CONFLICT (id) DO NOTHING;
 DROP POLICY IF EXISTS "site-manager files" ON storage.objects;
@@ -256,7 +273,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts']
+                           'drawings','messages','shifts','todos','contacts','equipment']
   LOOP
     EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS project_id UUID REFERENCES projects(id) ON DELETE CASCADE', t);
     EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (project_id)', t || '_project_idx', t);
@@ -269,7 +286,7 @@ DECLARE t TEXT;
 BEGIN
   FOREACH t IN ARRAY ARRAY['projects','users','positions','tasks','workers','attendance','logs','expenses',
                            'budget_lines','change_orders','issues','safety','materials',
-                           'drawings','messages','shifts','todos','contacts']
+                           'drawings','messages','shifts','todos','contacts','equipment']
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('DROP POLICY IF EXISTS "Allow all operations for anon" ON %I', t);

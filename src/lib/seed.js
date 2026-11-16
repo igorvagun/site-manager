@@ -320,6 +320,8 @@ export function buildSeed(lang = 'he') {
     x.setHours(h, m, 0, 0);
     return x.toISOString();
   };
+  // The remaining structure and finishing tasks follow one another.
+  [[9, 7], [10, 9], [11, 10]].forEach(([a, b]) => (tasks[a].depends_on = tasks[b].id));
   tasks.forEach((t) => {
     t.description = '';
     t.media = [];
@@ -394,6 +396,15 @@ export function buildSeed(lang = 'he') {
     { name: L('יעקב סלע', 'Yaakov Sela'), company: L('עירייה — פיקוח', 'Municipality — inspection'), kind: 'inspector', phone: '04-5550155', email: '', notes: '' },
   ]);
 
+  const equipment = mk([
+    { name: L('עגורן צריח', 'Tower crane'), kind: 'rented', status: 'on_site', supplier: L('מנופי אביב', 'Aviv Cranes'), daily_rate: 1500, start_date: d(-118), return_date: d(60), inspection_date: d(5), notes: '' },
+    { name: L('משאבת בטון', 'Concrete pump'), kind: 'rented', status: 'on_site', supplier: L('פיגומי הדרום', 'South Scaffolds'), daily_rate: 2200, start_date: d(-4), return_date: d(-1), inspection_date: null, notes: L('הוזמנה ליציקת עמודים קומה ג', 'Hired for the floor 3 column pour') },
+    { name: L('פיגומים — חזית מזרחית', 'Scaffolding — east façade'), kind: 'rented', status: 'on_site', supplier: L('פיגומי הדרום', 'South Scaffolds'), daily_rate: 380, start_date: d(-60), return_date: d(45), inspection_date: d(-2), notes: '' },
+    { name: L('גנרטור 60 קו״א', 'Generator 60 kVA'), kind: 'owned', status: 'on_site', supplier: '', daily_rate: 0, start_date: d(-128), return_date: null, inspection_date: d(22), notes: '' },
+    { name: L('מערבל בטון', 'Concrete mixer'), kind: 'owned', status: 'maintenance', supplier: '', daily_rate: 0, start_date: d(-110), return_date: null, inspection_date: null, notes: L('ממתין להחלפת כבל', 'Waiting for a cable replacement') },
+    { name: L('מחפר זחלי', 'Tracked excavator'), kind: 'rented', status: 'returned', supplier: L('עפר הצפון', 'North Earthworks'), daily_rate: 1900, start_date: d(-128), return_date: d(-112), returned_on: d(-113), inspection_date: null, notes: '' },
+  ]);
+
   const todos = mk([
     { title: L('לאשר הזמנת בטון ליום חמישי', 'Confirm Thursday concrete order'), list: L('אתר', 'Site'), priority: 'high', due_date: d(0), done: false, pinned: true, notes: '', subtasks: [{ t: L('כמות: 40 מ״ק', 'Quantity: 40 m³'), done: true }, { t: L('משאבה 10:00', 'Pump at 10:00'), done: false }] },
     { title: L('לתאם ביקורת מהנדס — עמודים קומה ג', 'Book engineer inspection — floor 3 columns'), list: L('אתר', 'Site'), priority: 'high', due_date: d(0), done: false, pinned: false, notes: '', subtasks: [] },
@@ -422,5 +433,6 @@ export function buildSeed(lang = 'he') {
     shifts: scope(P1, mk(shifts)),
     todos: scope(P1, todos),
     contacts: scope(P1, contacts),
+    equipment: scope(P1, equipment),
   };
 }

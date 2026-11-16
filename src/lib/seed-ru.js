@@ -72,4 +72,7 @@ export const SEED_RU = {
   'Confirm Thursday concrete order': 'Подтвердить заказ бетона на четверг', Site: 'Объект', 'Quantity: 40 m³': 'Объём: 40 м³', 'Pump at 10:00': 'Насос в 10:00',
   'Book engineer inspection — floor 3 columns': 'Вызвать инженера на приёмку колонн 3 этажа', 'Review Sheled progress bill': 'Проверить промежуточный счёт «Шелед»',
   Finance: 'Финансы', 'Answer elevator-shaft RFI': 'Ответить на запрос по шахте лифта', Design: 'Проект', 'Renew site insurance': 'Продлить страховку объекта',
+  'Tower crane': 'Башенный кран', 'Concrete pump': 'Бетононасос', 'Hired for the floor 3 column pour': 'Арендован для заливки колонн 3 этажа',
+  'Scaffolding — east façade': 'Леса — восточный фасад', 'Generator 60 kVA': 'Генератор 60 кВА', 'Concrete mixer': 'Бетономешалка',
+  'Waiting for a cable replacement': 'Ждёт замены кабеля', 'Tracked excavator': 'Гусеничный экскаватор',
 };

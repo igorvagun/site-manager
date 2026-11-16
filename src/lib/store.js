@@ -21,6 +21,7 @@ export const SCOPED = [
   'shifts',
   'todos',
   'contacts',
+  'equipment',
 ];
 export const COLLECTIONS = [...GLOBAL, ...SCOPED];
 
@@ -60,15 +61,60 @@ function persist() {
   }
 }
 
+// Snapshot of the data taken just before the current burst of changes, so a delete can be undone
+// together with the clean-up edits that came with it.
+let burstStart = null;
+let lastChange = 0;
 function setRows(name, fn) {
+  const now = Date.now();
+  if (now - lastChange > 300) burstStart = state.data;
+  lastChange = now;
   set({ data: { ...state.data, [name]: fn(state.data[name] || []) } });
   persist();
 }
 
-export function notify(message, type = 'info') {
+export function notify(message, type = 'info', action = null) {
   const id = uid();
-  set({ toasts: [...state.toasts, { id, message, type }] });
-  setTimeout(() => set({ toasts: state.toasts.filter((t) => t.id !== id) }), 3800);
+  set({ toasts: [...state.toasts.filter((t) => !action || !t.action), { id, message, type, action }] });
+  setTimeout(() => dismissToast(id), action ? UNDO_MS : 3800);
+}
+export const dismissToast = (id) => set({ toasts: state.toasts.filter((t) => t.id !== id) });
+
+export const UNDO_MS = 7000;
+let undoTimer = null;
+function offerUndo() {
+  const snapshot = burstStart;
+  clearTimeout(undoTimer);
+  // One toast per burst, shown once the related deletes have all happened.
+  undoTimer = setTimeout(() => {
+    if (state.toasts.some((t) => t.action?.snapshot === snapshot)) return;
+    notify('deleted', 'info', { label: 'undo', snapshot, run: () => restore(snapshot) });
+  }, 60);
+}
+
+async function restore(snapshot) {
+  if (!snapshot) return;
+  const { cancelFileDeletes } = await import('./files');
+  cancelFileDeletes();
+  const now = state.data;
+  if (remote()) {
+    for (const name of COLLECTIONS) {
+      const current = new Map((now[name] || []).map((r) => [r.id, r]));
+      const missing = snapshot[name].filter((r) => !current.has(r.id));
+      const changed = snapshot[name].filter((r) => current.has(r.id) && current.get(r.id) !== r);
+      if (missing.length) await supabase.from(name).insert(missing);
+      for (const r of changed) await supabase.from(name).update(r).eq('id', r.id);
+    }
+  }
+  // Keep anything created after the snapshot; bring back what was removed or edited.
+  const next = {};
+  COLLECTIONS.forEach((name) => {
+    const old = new Set(snapshot[name].map((r) => r.id));
+    next[name] = [...snapshot[name], ...(now[name] || []).filter((r) => !old.has(r.id))];
+  });
+  set({ data: next });
+  persist();
+  notify('restored_item');
 }
 
 function useLocal(lang) {
@@ -165,10 +211,11 @@ export async function updateRow(name, id, patch) {
   }
 }
 
-export async function removeRow(name, id) {
+export async function removeRow(name, id, { silent = false } = {}) {
   const prev = (state.data[name] || []).find((r) => r.id === id);
   if (!prev) return;
   setRows(name, (rows) => rows.filter((r) => r.id !== id));
+  if (!bulk && !silent) offerUndo();
   if (remote()) {
     const { error } = await supabase.from(name).delete().eq('id', id);
     if (error) {
@@ -180,6 +227,7 @@ export async function removeRow(name, id) {
 }
 
 // Replace everything (demo reset / backup restore).
+let bulk = false; // demo reset / project delete are confirmed separately and are not undoable
 export async function replaceAll(data) {
   const next = { ...emptyData() };
   COLLECTIONS.forEach((c) => {
@@ -253,6 +301,14 @@ export function setProject(id) {
 }
 
 export async function deleteProject(id) {
+  bulk = true;
+  try {
+    await removeProjectRows(id);
+  } finally {
+    bulk = false;
+  }
+}
+async function removeProjectRows(id) {
   for (const name of SCOPED) {
     for (const r of state.data[name].filter((x) => x.project_id === id)) await removeRow(name, r.id);
   }

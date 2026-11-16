@@ -4,6 +4,7 @@ import { useStore, useData, addRow } from '../lib/store';
 import { lastOpened } from '../lib/prefs';
 import { clockIn, clockOut } from '../lib/clock';
 import { startTask, finishTask } from './TaskJournal';
+import { equipmentAlerts } from './Equipment';
 import { ACCENTS, WALLPAPERS } from '../lib/apps';
 import { Icon, IconButton, Glass, Ring, EntityForm } from '../components/ui';
 import { useMetrics } from './Dashboard';
@@ -81,6 +82,7 @@ function useBadges(user, project) {
     issues: data.issues.filter((x) => x.status !== 'done' && x.due_date && x.due_date < today).length,
     safety: data.safety.filter((x) => x.status === 'open').length,
     materials: data.materials.filter((x) => Number(x.qty) < Number(x.min_qty)).length,
+    equipment: equipmentAlerts(data.equipment, today).overdue.length + data.equipment.filter((e) => e.status !== 'returned' && e.inspection_date && e.inspection_date < today).length,
     todo: data.todos.filter((x) => x.user_id === user.id && !x.done && x.due_date && x.due_date <= today).length,
     tasklog: data.messages.filter(
       (m) => m.thread.startsWith('task:') && m.sender_id !== user.id && !m.deleted && String(m.created_at) > seen && mine(data.tasks.find((x) => 'task:' + x.id === m.thread))

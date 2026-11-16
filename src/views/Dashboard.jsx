@@ -204,6 +204,7 @@ export default function Dashboard({ go }) {
     ...m.lateTasks.map((x) => ({ tone: 'red', icon: 'clock', text: `${t('alert_late_task')}: ${x.name}`, to: 'schedule' })),
     ...m.overdueIssues.map((x) => ({ tone: 'orange', icon: 'check', text: `${t('alert_overdue_issue')}: ${x.title}`, to: 'issues' })),
     ...data.safety.filter((s) => s.status === 'open').map((x) => ({ tone: 'red', icon: 'shield', text: `${t('alert_open_safety')}: ${x.title}`, to: 'safety' })),
+    ...data.equipment.filter((e) => e.kind === 'rented' && e.status !== 'returned' && e.return_date && e.return_date < today).map((x) => ({ tone: 'red', icon: 'truck', text: `${t('alert_equipment')}: ${x.name}`, to: 'equipment' })),
     ...m.lowStock.map((x) => ({ tone: 'yellow', icon: 'box', text: `${t('alert_low_stock')}: ${x.name} (${x.qty} ${x.unit})`, to: 'materials' })),
     ...byCat.filter((r) => r.planned && r.actual / r.planned >= 0.9).map((r) => ({
       tone: 'orange', icon: 'wallet', to: 'budget',
